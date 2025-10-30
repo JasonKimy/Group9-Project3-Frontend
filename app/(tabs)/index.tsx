@@ -1,98 +1,75 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+//index.tsx
+import React from 'react';
+import { SafeAreaView, View, Text, StyleSheet, FlatList } from 'react-native';
+import PlaceCard from '../../components/PlaceCard';
+import colors from '../../constants/colors';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
 
-export default function HomeScreen() {
+//Mock data for places the user can visit
+//Each place will be displayed as a card on the homepage
+const places = [
+  {
+    id: '1',
+    name: 'Library',
+    description: 'Read and relax',
+    image: 'https://img.icons8.com/ios-filled/100/000000/library.png',
+  },
+  {
+    id: '2',
+    name: 'Hiking Trail',
+    description: 'Explore nature',
+    image: 'https://img.icons8.com/ios-filled/100/000000/trekking.png',
+  },
+  {
+    id: '3',
+    name: 'Coffee Shop',
+    description: 'Grab a drink',
+    image: 'https://img.icons8.com/ios-filled/100/000000/coffee.png',
+  },
+  {
+    id: '4',
+    name: 'Gym',
+    description: 'Get moving',
+    image: 'https://img.icons8.com/ios-filled/100/000000/dumbbell.png',
+  },
+];
+
+
+// Homepage component for the Move & Collect app
+// Displays a header, intro text, and a list of place cards
+export default function Home() {
+  const renderCard = ({ item }: any) => <PlaceCard {...item} />;
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Let's Wander</Text>
+        <Text style={styles.headerSubtitle}>Visit places, get active, and collect cards!</Text>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <View style={styles.intro}>
+        <Text style={styles.introText}>
+          Track your visits to local spots like libraries, hiking trails, coffee shops, and gyms to unlock cards!
+        </Text>
+      </View>
+
+      <FlatList
+        data={places}
+        renderItem={renderCard}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.cardsContainer}
+      />
+    </SafeAreaView>
   );
 }
 
+// Styles for the homepage
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { backgroundColor: colors.primary, padding: 20, alignItems: 'center' },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: colors.white },
+  headerSubtitle: { fontSize: 16, color: colors.white, marginTop: 5, textAlign: 'center' },
+  intro: { padding: 15, alignItems: 'center' },
+  introText: { textAlign: 'center', fontSize: 14, color: colors.black },
+  cardsContainer: { paddingHorizontal: 10, paddingBottom: 20 },
 });
