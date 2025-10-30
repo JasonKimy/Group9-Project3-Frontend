@@ -1,9 +1,10 @@
 //index.tsx
-import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, FlatList } from 'react-native';
+import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import PlaceCard from '../../components/PlaceCard';
 import colors from '../../constants/colors';
 
+//Will have to change this to redirect into account page first
+//Starting at create account
 
 //Mock data for places the user can visit
 //Each place will be displayed as a card on the homepage
