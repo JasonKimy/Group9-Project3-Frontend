@@ -1,3 +1,12 @@
+
+
+// import { registerRootComponent } from 'expo';
+// import App from './App';
+
+// registerRootComponent(App);
+
+
+
 //index.tsx
 import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import PlaceCard from '../../components/PlaceCard';
