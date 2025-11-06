@@ -13,7 +13,7 @@ export default function DeckScreen({ route, navigation }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get<Deck>(`https://your-backend.com/api/decks/${deckId}`)
+    axios.get<Deck>(`https://our-backend.com/api/decks/${deckId}`)
       .then(res => setDeck(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
