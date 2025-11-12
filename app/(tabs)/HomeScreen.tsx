@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import axios from 'axios';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../App';
+import React, { useEffect, useState } from 'react';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { RootStackParamList } from './app';
 
 interface Deck {
   id: string;
@@ -16,9 +15,9 @@ export default function HomeScreen({ navigation }: Props) {
   const [decks, setDecks] = useState<Deck[]>([]);
 
   useEffect(() => {
-    // axios.get<Deck[]>('backend api here')
-      .then(res => setDecks(res.data))
-      .catch(console.error);
+    // axios.get<Deck[]>('https://our-backend.com/api/decks')
+    //   .then(res => setDecks(res.data))
+    //   .catch(console.error);
   }, []);
 
   return (

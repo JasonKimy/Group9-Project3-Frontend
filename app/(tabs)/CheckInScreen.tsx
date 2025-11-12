@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../App';
+import { RootStackParamList } from './app';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CheckIn'>;
 
@@ -25,10 +25,10 @@ export default function CheckInScreen({ route, navigation }: Props) {
 
       const location = await Location.getCurrentPositionAsync({});
       const formData = new FormData();
-
       formData.append('placeId', placeId);
       formData.append('latitude', String(location.coords.latitude));
       formData.append('longitude', String(location.coords.longitude));
+
       if (photo) {
         formData.append('photo', {
           uri: photo,
@@ -37,9 +37,9 @@ export default function CheckInScreen({ route, navigation }: Props) {
         } as any);
       }
 
-    //   await axios.post('checkin api here', formData, {
-    //     headers: { 'Content-Type': 'multipart/form-data' },
-    //   });
+      // await axios.post('https://our-backend.com/api/checkin', formData, {
+      //   headers: { 'Content-Type': 'multipart/form-data' },
+      // });
 
       Alert.alert('Success', 'Check-in completed!');
       navigation.goBack();

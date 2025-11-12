@@ -1,13 +1,15 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from 'react';
 // import LoginScreen from './LoginScreen';
-import HomeScreen from './HomeScreen';
-import DeckScreen from './DeckScreen';
+// import CreateAccountScreen from './CreateAccountScreen';
 import CheckInScreen from './CheckInScreen';
+import DeckScreen from './DeckScreen';
+import HomeScreen from './HomeScreen';
 
 export type RootStackParamList = {
   Login: undefined;
+  CreateAccount: undefined;
   Home: undefined;
   Deck: { deckId: string };
   CheckIn: { placeId: string };
@@ -20,6 +22,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
         {/* <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} /> */}
+        {/* <Stack.Screen name="CreateAccount" component={CreateAccountScreen} options={{ title: 'Create Account' }} /> */}
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Deck" component={DeckScreen} />
         <Stack.Screen name="CheckIn" component={CheckInScreen} />

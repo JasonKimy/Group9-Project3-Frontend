@@ -2,8 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../App';
-import { Deck, Place } from '../types/models';
+import { RootStackParamList } from './app';
+
+interface Place {
+  id: string;
+  name: string;
+  address: string;
+  visited: boolean;
+}
+
+interface Deck {
+  id: string;
+  name: string;
+  places: Place[];
+}
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Deck'>;
 
@@ -12,12 +24,12 @@ export default function DeckScreen({ route, navigation }: Props) {
   const [deck, setDeck] = useState<Deck | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    axios.get<Deck>(`https://our-backend.com/api/decks/${deckId}`)
-      .then(res => setDeck(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [deckId]);
+  // useEffect(() => {
+  //   axios.get<Deck>(`https://our-backend.com/api/decks/${deckId}`)
+  //     .then(res => setDeck(res.data))
+  //     .catch(console.error)
+  //     .finally(() => setLoading(false));
+  // }, [deckId]);
 
   if (loading) return <ActivityIndicator size="large" style={{ flex: 1 }} />;
   if (!deck) return <Text style={{ textAlign: 'center' }}>Deck not found.</Text>;
