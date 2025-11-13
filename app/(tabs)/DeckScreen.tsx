@@ -5,6 +5,15 @@ import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity,
 import { calculateDistance, fetchPlacesByCategory } from '../services/api';
 import { Deck } from './models';
 
+// Color palette for the Wander app
+const COLORS = {
+  darkBlue: '#15292E',  // Background primary dark
+  tealDark: '#074047',  // Input background
+  teal: '#108585',  // Accent color / links
+  mint: '#1DA27E',  // Primary button color / highlights
+  white: '#fff',    // Text color
+};
+
 export default function DeckScreen() {
   const { deckId } = useLocalSearchParams() as { deckId: string };
   const router = useRouter();
@@ -102,7 +111,7 @@ export default function DeckScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={COLORS.mint} />
         <Text style={styles.loadingText}>Loading places...</Text>
       </View>
     );
@@ -165,63 +174,62 @@ export default function DeckScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.white,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   emptyText: {
     fontSize: 18,
-    color: '#666',
+    color: COLORS.white,
     textAlign: 'center',
     marginBottom: 20,
   },
   backButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.mint,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 10,
   },
   backButtonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
   },
   headerContainer: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    backgroundColor: COLORS.tealDark,
+    padding: 20,
+    paddingTop: 60,
   },
   header: { 
     fontSize: 28, 
     fontWeight: 'bold', 
     marginBottom: 8,
-    color: '#333',
+    color: COLORS.white,
   },
   description: {
     fontSize: 16,
-    color: '#666',
+    color: '#d0f0ed',
     marginBottom: 8,
   },
   progressText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: COLORS.mint,
     fontWeight: '600',
   },
   listContent: {
@@ -229,14 +237,9 @@ const styles = StyleSheet.create({
   },
   placeCard: { 
     padding: 16, 
-    backgroundColor: '#fff', 
+    backgroundColor: COLORS.tealDark, 
     borderRadius: 12, 
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   placeInfo: {
     flex: 1,
@@ -245,41 +248,41 @@ const styles = StyleSheet.create({
     fontSize: 20, 
     fontWeight: '600',
     marginBottom: 4,
-    color: '#333',
+    color: COLORS.white,
   },
   placeCity: { 
     fontSize: 14,
-    color: '#007AFF',
+    color: COLORS.mint,
     marginBottom: 8,
     fontWeight: '500',
   },
   placeDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#d0f0ed',
     lineHeight: 20,
     marginBottom: 8,
   },
   distanceText: {
     fontSize: 13,
-    color: '#888',
+    color: COLORS.teal,
     fontStyle: 'italic',
   },
   visited: { 
-    backgroundColor: '#e8f5e9',
+    backgroundColor: COLORS.teal,
     borderWidth: 2,
-    borderColor: '#4caf50',
+    borderColor: COLORS.mint,
   },
   visitedBadge: {
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: '#4caf50',
+    backgroundColor: COLORS.mint,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
   visitedText: { 
-    color: '#fff', 
+    color: COLORS.white, 
     fontWeight: 'bold',
     fontSize: 12,
   },

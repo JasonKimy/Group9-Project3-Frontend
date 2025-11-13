@@ -2,9 +2,18 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { calculateDistance, fetchPlaceById } from '../services/api';
 import { Place } from './models';
+
+// Color palette for the Wander app
+const COLORS = {
+  darkBlue: '#15292E',  // Background primary dark
+  tealDark: '#074047',  // Input background
+  teal: '#108585',  // Accent color / links
+  mint: '#1DA27E',  // Primary button color / highlights
+  white: '#fff',    // Text color
+};
 
 const CHECK_IN_RADIUS_KM = 0.5; // User must be within 500 meters to check in
 
@@ -199,7 +208,7 @@ export default function CheckInScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={COLORS.mint} />
         <Text style={styles.loadingText}>Loading place details...</Text>
       </View>
     );
@@ -245,37 +254,40 @@ export default function CheckInScreen() {
           <View>
             <Image source={{ uri: photo }} style={styles.image} />
             <View style={styles.buttonRow}>
-              <View style={styles.buttonWrapper}>
-                <Button title="Retake" onPress={pickImage} />
-              </View>
-              <View style={styles.buttonWrapper}>
-                <Button title="Remove" onPress={() => setPhoto(null)} color="#ff3b30" />
-              </View>
+              <TouchableOpacity style={styles.button} onPress={pickImage}>
+                <Text style={styles.buttonText}>Retake</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={() => setPhoto(null)}>
+                <Text style={styles.buttonText}>Remove</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ) : (
           <View style={styles.buttonRow}>
-            <View style={styles.buttonWrapper}>
-              <Button title="📷 Take Photo" onPress={pickImage} />
-            </View>
-            <View style={styles.buttonWrapper}>
-              <Button title="🖼️ Choose from Gallery" onPress={pickFromGallery} />
-            </View>
+            <TouchableOpacity style={styles.button} onPress={pickImage}>
+              <Text style={styles.buttonText}>📷 Take Photo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={pickFromGallery}>
+              <Text style={styles.buttonText}>🖼️ Gallery</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
 
       <View style={styles.checkInSection}>
         {checkingIn ? (
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={COLORS.mint} />
         ) : (
           <>
-            <Button
-              title={isWithinRadius ? '✓ Check In Now' : 'Too Far Away'}
+            <TouchableOpacity 
+              style={[styles.checkInButton, (!isWithinRadius || !userLocation) && styles.checkInButtonDisabled]}
               onPress={handleCheckIn}
               disabled={!isWithinRadius || !userLocation}
-              color={isWithinRadius ? '#34c759' : '#999'}
-            />
+            >
+              <Text style={styles.checkInButtonText}>
+                {isWithinRadius ? '✓ Check In Now' : 'Too Far Away'}
+              </Text>
+            </TouchableOpacity>
             {!userLocation && (
               <Text style={styles.warningText}>Getting your location...</Text>
             )}
@@ -300,7 +312,7 @@ export default function CheckInScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   contentContainer: {
     padding: 16,
@@ -309,66 +321,62 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.white,
   },
   errorContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+    backgroundColor: COLORS.darkBlue,
   },
   errorText: {
     fontSize: 18,
-    color: '#ff3b30',
+    color: COLORS.mint,
   },
   placeInfoContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.tealDark,
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   title: { 
     fontSize: 28, 
     fontWeight: 'bold', 
     marginBottom: 8,
-    color: '#333',
+    color: COLORS.white,
   },
   category: {
     fontSize: 14,
-    color: '#007AFF',
+    color: COLORS.mint,
     fontWeight: '600',
     marginBottom: 12,
   },
   description: {
     fontSize: 16,
-    color: '#666',
+    color: '#d0f0ed',
     lineHeight: 24,
   },
   distanceContainer: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: COLORS.teal,
   },
   distanceLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#d0f0ed',
     marginBottom: 4,
   },
   distanceValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#34c759',
+    color: COLORS.mint,
   },
   distanceFar: {
     color: '#ff9500',
@@ -380,21 +388,16 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   photoSection: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.tealDark,
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#333',
+    color: COLORS.white,
   },
   image: { 
     width: '100%', 
@@ -407,34 +410,55 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
   },
-  buttonWrapper: {
+  button: {
     flex: 1,
+    backgroundColor: COLORS.mint,
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  buttonDanger: {
+    backgroundColor: '#ff3b30',
+  },
+  buttonText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   checkInSection: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.tealDark,
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  },
+  checkInButton: {
+    backgroundColor: COLORS.mint,
+    padding: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  checkInButtonDisabled: {
+    backgroundColor: '#666',
+  },
+  checkInButtonText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+    fontSize: 18,
   },
   warningText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#666',
+    color: '#d0f0ed',
     textAlign: 'center',
   },
   coordinatesContainer: {
     padding: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.tealDark,
     borderRadius: 8,
   },
   coordinatesText: {
     fontSize: 12,
-    color: '#888',
+    color: COLORS.teal,
     fontFamily: 'monospace',
     marginBottom: 4,
   },

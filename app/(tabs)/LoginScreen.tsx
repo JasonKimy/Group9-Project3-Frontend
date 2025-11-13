@@ -1,8 +1,17 @@
 // app/(tabs)/LoginScreen.tsx
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Button, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 import { RootStackParamList } from './app';
+
+// Color palette for the Wander app
+const COLORS = {
+  darkBlue: '#15292E',  // Background primary dark
+  tealDark: '#074047',  // Input background
+  teal: '#108585',  // Accent color / links
+  mint: '#1DA27E',  // Primary button color / highlights
+  white: '#fff',    // Text color
+};
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -16,62 +25,60 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Welcome Back!</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.title}>WANDER</Text>
 
-      <View style={styles.inputContainer}>
-        <Text>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor={COLORS.teal}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-      <View style={styles.inputContainer}>
-        <Text>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-      </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor={COLORS.teal}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-      <View style={{ marginTop: 20, width: '100%' }}>
-        <Button title="Login" onPress={handleLogin} />
-      </View>
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
+// Styles for the login page
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f2f2f2',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 40,
-  },
-  inputContainer: {
-    width: '100%',
-    marginBottom: 20,
-  },
+  safeArea: { flex: 1, backgroundColor: COLORS.darkBlue },
+  container: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  title: { fontSize: 32, fontWeight: 'bold', color: COLORS.mint, marginBottom: 40 },
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 5,
-    backgroundColor: '#fff',
+    width: '100%',
+    padding: 14,
+    marginBottom: 20,
+    borderRadius: 10,
+    backgroundColor: COLORS.tealDark,
+    color: COLORS.white,
+    fontSize: 16,
   },
+  button: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 10,
+    backgroundColor: COLORS.mint,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  buttonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 18 },
 });

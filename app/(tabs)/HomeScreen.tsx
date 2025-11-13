@@ -1,7 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { fetchCategories, fetchPlacesByCategory } from '../services/api';
+
+// Color palette for the Wander app
+const COLORS = {
+  darkBlue: '#15292E',  // Background primary dark
+  tealDark: '#074047',  // Input background
+  teal: '#108585',  // Accent color / links
+  mint: '#1DA27E',  // Primary button color / highlights
+  white: '#fff',    // Text color
+};
 
 interface Deck {
   id: string;
@@ -101,124 +110,142 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={COLORS.mint} />
         <Text style={styles.loadingText}>Loading challenges...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.header}>This Week's Challenges</Text>
-        <Text style={styles.subheader}>
-          Explore {decks.reduce((sum, deck) => sum + deck.placeCount, 0)} amazing places
-        </Text>
+    <ScrollView style={styles.container}>
+      {/* Welcome Banner */}
+      <View style={styles.banner}>
+        <Text style={styles.bannerText}>Let's Wander!</Text>
+        <Text style={styles.bannerSubText}>Explore your city and earn points!</Text>
       </View>
-      
+
+      {/* Points Card */}
+      <View style={styles.pointsCard}>
+        <Text style={styles.pointsLabel}>Your Points</Text>
+        <Text style={styles.pointsValue}>0</Text>
+      </View>
+
+      {/* Weekly Decks */}
+      <Text style={styles.sectionTitle}>This Week's Challenges</Text>
       <FlatList
         data={decks}
         keyExtractor={(item) => item.id}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.deckCard}
+            style={[styles.deckCard, { backgroundColor: COLORS.teal }]}
             onPress={() => router.push(`/deck/${item.id}`)}
           >
-            <View style={styles.deckHeader}>
-              <Text style={styles.deckEmoji}>{getCategoryEmoji(item.category)}</Text>
-              <View style={styles.deckInfo}>
-                <Text style={styles.deckName}>{item.name}</Text>
-                <Text style={styles.deckDescription}>{item.description}</Text>
-              </View>
-              <Text style={styles.arrow}>›</Text>
-            </View>
+            <Text style={styles.deckEmoji}>{getCategoryEmoji(item.category)}</Text>
+            <Text style={styles.deckName}>{item.name}</Text>
+            <Text style={styles.deckTheme}>{item.description}</Text>
+            <Text style={styles.deckPlaces}>{item.placeCount} places</Text>
           </TouchableOpacity>
         )}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#007AFF']}
-            tintColor="#007AFF"
+            colors={[COLORS.mint]}
+            tintColor={COLORS.mint}
           />
         }
-        contentContainerStyle={styles.listContent}
       />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#f5f5f5',
+  container: {
+    flex: 1,
+    paddingTop: 20,
+    backgroundColor: COLORS.darkBlue,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.white,
   },
-  headerContainer: {
-    backgroundColor: '#fff',
+  banner: {
+    backgroundColor: COLORS.teal,
     padding: 20,
-    paddingTop: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  header: { 
-    fontSize: 32, 
-    fontWeight: 'bold', 
-    marginBottom: 8,
-    color: '#333',
-  },
-  subheader: {
-    fontSize: 16,
-    color: '#666',
-  },
-  listContent: {
-    padding: 16,
-  },
-  deckCard: { 
-    padding: 20, 
-    backgroundColor: '#fff', 
-    marginVertical: 8, 
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  deckHeader: {
-    flexDirection: 'row',
+    borderRadius: 15,
+    marginHorizontal: 16,
+    marginBottom: 20,
     alignItems: 'center',
   },
+  bannerText: {
+    color: COLORS.white,
+    fontSize: 26,
+    fontWeight: 'bold',
+  },
+  bannerSubText: {
+    color: '#d0f0ed',
+    fontSize: 16,
+    marginTop: 5,
+  },
+  pointsCard: {
+    backgroundColor: COLORS.tealDark,
+    marginHorizontal: 16,
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  pointsLabel: {
+    color: COLORS.white,
+    fontSize: 16,
+  },
+  pointsValue: {
+    color: COLORS.mint,
+    fontSize: 36,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: COLORS.white,
+    marginHorizontal: 16,
+    marginBottom: 12,
+  },
+  deckCard: {
+    width: 180,
+    padding: 16,
+    borderRadius: 15,
+    marginLeft: 16,
+    justifyContent: 'space-between',
+  },
   deckEmoji: {
-    fontSize: 40,
-    marginRight: 16,
-  },
-  deckInfo: {
-    flex: 1,
-  },
-  deckName: { 
-    fontSize: 22, 
-    fontWeight: '600',
-    marginBottom: 4,
-    color: '#333',
-  },
-  deckDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  arrow: {
     fontSize: 32,
-    color: '#c7c7cc',
-    fontWeight: '300',
+    marginBottom: 8,
+  },
+  deckName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.white,
+  },
+  deckTheme: {
+    fontSize: 14,
+    color: '#e0f7f5',
+    marginTop: 5,
+  },
+  deckPlaces: {
+    fontSize: 14,
+    color: COLORS.white,
+    marginTop: 10,
   },
 });
