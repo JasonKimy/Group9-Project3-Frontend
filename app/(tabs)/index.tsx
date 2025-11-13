@@ -1,16 +1,25 @@
+import { FlatList, Image, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
+// Local, tiny color map so this file doesn't rely on project-wide constants
+const colors = {
+  background: '#f7f7fb',
+  primary: '#0066cc',
+  white: '#ffffff',
+  black: '#000000',
+};
 
-// import { registerRootComponent } from 'expo';
-// import App from './App';
-
-// registerRootComponent(App);
-
-
-
-//index.tsx
-import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import PlaceCard from '../../components/PlaceCard';
-import colors from '../../constants/colors';
+// Simple inline PlaceCard so this screen is self-contained.
+function PlaceCard({ id, name, description, image }: any) {
+  return (
+    <View style={cardStyles.card} key={id}>
+      <Image source={{ uri: image }} style={cardStyles.image} />
+      <View style={cardStyles.body}>
+        <Text style={cardStyles.title}>{name}</Text>
+        <Text style={cardStyles.desc}>{description}</Text>
+      </View>
+    </View>
+  );
+}
 
 //Will have to change this to redirect into account page first
 //Starting at create account
@@ -82,4 +91,12 @@ const styles = StyleSheet.create({
   intro: { padding: 15, alignItems: 'center' },
   introText: { textAlign: 'center', fontSize: 14, color: colors.black },
   cardsContainer: { paddingHorizontal: 10, paddingBottom: 20 },
+});
+
+const cardStyles = StyleSheet.create({
+  card: { flexDirection: 'row', padding: 12, backgroundColor: '#fff', borderRadius: 10, marginVertical: 8, alignItems: 'center' },
+  image: { width: 56, height: 56, marginRight: 12 },
+  body: { flex: 1 },
+  title: { fontSize: 16, fontWeight: '600' },
+  desc: { color: '#555' },
 });

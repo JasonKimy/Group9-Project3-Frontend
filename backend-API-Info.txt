@@ -1,0 +1,60 @@
+API URL: https://wander-api-196ebd783842.herokuapp.com/
+
+Places routes:
+
+api/places
+Example (first item):
+{
+  "id":"captain-stoker-monterey",
+  "name":"Captain + Stoker",
+  "category":"coffee_shop",
+  "subcategory":"cafe",
+  "lat":36.6027,
+  "lon":-121.8968,
+  "city":"Monterey",
+  "description":"Specialty coffee roaster and cafe near downtown Monterey."
+}
+
+/api/places/{id}
+Example request:
+/api/places/captain-stoker-Monterey
+
+/api/places/category/{category}
+Example request:
+/api/places/category/coffee_shop
+
+/api/places/city/{city}
+Example request:
+/api/places/city/Monterey
+
+/api/places/subcategory/{subcategory}
+Example request:
+/api/places/subcategory/cafe
+
+/api/places/search?name={name}
+Example request:
+/api/places/search?name=Bright
+
+/api/places/search/description?keyword={keyword}
+Example request:
+/api/places/search/description?keyword=roaster
+
+/api/places/nearby?minLat={minLat}&maxLat={maxLat}&minLon={minLon}&maxLon={maxLon}
+Example request:
+/api/places/nearby?minLat=36.55&maxLat=36.63&minLon=-121.94&maxLon=-121.85
+
+/api/places/filter?category={category}&city={city}
+Examples request:
+/api/places/filter?category=park&city=Monterey
+/api/places/filter?category=beach
+/api/places/filter?city=Marina
+/api/places/filter
+
+/api/places/categories
+Gets all categories.
+
+/api/places/cities
+Gets all cities.
+
+/api/places/count
+Gets total count of all places.

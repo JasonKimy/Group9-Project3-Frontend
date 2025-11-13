@@ -1,7 +1,7 @@
 // app/(tabs)/LoginScreen.tsx
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useState } from 'react';
+import { Button, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { RootStackParamList } from './app';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;

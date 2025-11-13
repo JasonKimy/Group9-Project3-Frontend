@@ -1,0 +1,37 @@
+Project Proposal – Wander
+Wander is a gamified mobile app that motivates users to explore their city through weekly
+themed challenges. Each week, users receive several challenge “decks” such as Coffee Shops,
+Hiking Trails, Restaurants, or Gyms. Each deck lists real nearby places chosen using location
+and weather data. When users visit a place, they check in (GPS-verified) and may take a
+photo to earn a collectible Place Card. Cards can level up through repeat visits. Completing
+all places in a deck rewards points and adds that deck to the user’s collection; points can
+unlock additional weekly challenges.
+Key Features
+● Login / Authentication: Google OAuth 2.0 sign-in.
+● Weekly Challenges: 2–5 themed decks generated from weather + location data.
+● Check-Ins: Verified by GPS with optional photo upload.
+● Card Collection: Collect and level cards for visited places.
+● Points & Rewards: Earn points for completing decks and unlock more challenges.
+Technology Stack
+Frontend – React Native (Expo) Backend – Spring Boot (API with ≥ 8 endpoints)
+Database – Supabase PostgreSQL
+Auth – Google OAuth 2 (Spring Security) APIs – Google Places & OpenWeather Hosting –
+Heroku / Render
+Developer Roles
+● Backend Developer 1 – User & Auth: Implement Google OAuth 2 login, manage user
+profiles, and secure API routes.
+● Backend Developer 2 – Challenge Logic & Data: Integrate Places + Weather APIs, create
+endpoints for deck generation, GPS check-ins, and point rewards.
+● Frontend Developer 1 – UI & Navigation: Build main screens (login, home, decks, map,
+check-in) and connect to backend APIs.
+● Frontend Developer 2 – Cards & Rewards: Design collectible card visuals, handle
+animations, rewards, and leaderboard display.
+Minimum Viable Product (MVP)
+● Google login / user onboarding.
+● Weekly deck creation using weather + location data.
+● GPS check-ins for places.
+● Card collection and deck completion.
+● Points system for rewards.
+Vertical Slice Example
+A “Coffee Quest” deck showing 3–5 nearby cafés, weather-based recommendations, working
+GPS check-in, and one functional collectible card with rewards.
