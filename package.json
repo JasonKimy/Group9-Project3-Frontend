@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
   "build:web": "expo export --web --output-dir web-build",
-  "start": "serve -s web-build -l 8081",
+  "start": "serve -s web-build -l $PORT",
     "export-web": "npx expo export:web --output-dir dist",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
