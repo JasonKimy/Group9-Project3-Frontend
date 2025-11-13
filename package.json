@@ -3,8 +3,9 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "build:web": "expo export --web --output-dir web-build",
-    "start": "serve -s web-build -l $PORT",
+  "build:web": "expo export --platform web --output-dir web-build",
+  "start": "serve -s web-build -l $PORT",
+    "heroku-postbuild": "npm run build:web",
     "export-web": "npx expo export:web --output-dir dist",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
