@@ -1,22 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../App';
-import { Deck, Place } from '../types/models';
+import { useRouter, useSearchParams } from 'expo-router';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Deck'>;
+interface Place {
+  id: string;
+  name: string;
+  address: string;
+  visited?: boolean;
+}
 
-export default function DeckScreen({ route, navigation }: Props) {
-  const { deckId } = route.params;
+interface Deck {
+  id: string;
+  name: string;
+  places: Place[];
+}
+
+export default function DeckScreen() {
+  const { deckId } = useSearchParams();
   const [deck, setDeck] = useState<Deck | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    axios.get<Deck>(`https://your-backend.com/api/decks/${deckId}`)
-      .then(res => setDeck(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    if (!deckId) return;
+    const mockDeck: Deck = {
+      id: deckId,
+      name: 'Sample Deck',
+      places: [
+        { id: '1', name: 'Library', address: '123 Main St' },
+        { id: '2', name: 'Gym', address: '456 Elm St' },
+      ],
+    };
+    setDeck(mockDeck);
+    setLoading(false);
   }, [deckId]);
 
   if (loading) return <ActivityIndicator size="large" style={{ flex: 1 }} />;
@@ -31,7 +47,7 @@ export default function DeckScreen({ route, navigation }: Props) {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.placeCard, item.visited && styles.visited]}
-            onPress={() => navigation.navigate('CheckIn', { placeId: item.id })}
+            onPress={() => router.push(`/home/CheckInScreen?placeId=${item.id}`)}
           >
             <Text style={styles.placeName}>{item.name}</Text>
             <Text style={styles.placeAddress}>{item.address}</Text>

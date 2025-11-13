@@ -2,16 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, Button, Image, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
-import axios from 'axios';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../App';
+import { useSearchParams, useRouter } from 'expo-router';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'CheckIn'>;
-
-export default function CheckInScreen({ route, navigation }: Props) {
-  const { placeId } = route.params;
+export default function CheckInScreen() {
+  const { placeId } = useSearchParams();
   const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleCheckIn = async () => {
     setLoading(true);
@@ -25,8 +22,7 @@ export default function CheckInScreen({ route, navigation }: Props) {
 
       const location = await Location.getCurrentPositionAsync({});
       const formData = new FormData();
-
-      formData.append('placeId', placeId);
+      formData.append('placeId', placeId as string);
       formData.append('latitude', String(location.coords.latitude));
       formData.append('longitude', String(location.coords.longitude));
       if (photo) {
@@ -37,12 +33,12 @@ export default function CheckInScreen({ route, navigation }: Props) {
         } as any);
       }
 
-    //   await axios.post('checkin api here', formData, {
-    //     headers: { 'Content-Type': 'multipart/form-data' },
-    //   });
+      // await axios.post('checkin api here', formData, {
+      //   headers: { 'Content-Type': 'multipart/form-data' },
+      // });
 
       Alert.alert('Success', 'Check-in completed!');
-      navigation.goBack();
+      router.back();
     } catch (err) {
       console.error(err);
       Alert.alert('Error', 'Failed to check in.');
