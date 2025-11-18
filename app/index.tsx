@@ -1,2 +1,1 @@
-export { default } from './(tabs)/HomeScreen';
-
+export { default } from './LoginScreen';

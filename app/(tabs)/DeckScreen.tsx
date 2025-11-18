@@ -5,6 +5,14 @@ import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity,
 import { calculateDistance, fetchPlacesByCategory } from '../services/api';
 import { Deck } from './models';
 
+const COLORS = {
+  darkBlue: '#15292E',   // Background
+  tealDark: '#074047',   // Cards
+  teal: '#108585',       // Secondary text / accents
+  mint: '#1DA27E',       // Highlights / buttons
+  white: '#fff',
+};
+
 export default function DeckScreen() {
   const { deckId } = useLocalSearchParams() as { deckId: string };
   const router = useRouter();
@@ -165,45 +173,45 @@ export default function DeckScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.white,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   emptyText: {
     fontSize: 18,
-    color: '#666',
+    color: COLORS.white,
     textAlign: 'center',
     marginBottom: 20,
   },
   backButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.mint,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   backButtonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
   },
   headerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.tealDark,
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
@@ -212,16 +220,16 @@ const styles = StyleSheet.create({
     fontSize: 28, 
     fontWeight: 'bold', 
     marginBottom: 8,
-    color: '#333',
+    color: COLORS.mint,
   },
   description: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.white,
     marginBottom: 8,
   },
   progressText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: COLORS.teal,
     fontWeight: '600',
   },
   listContent: {
@@ -229,7 +237,7 @@ const styles = StyleSheet.create({
   },
   placeCard: { 
     padding: 16, 
-    backgroundColor: '#fff', 
+    backgroundColor: COLORS.tealDark, 
     borderRadius: 12, 
     marginBottom: 12,
     shadowColor: '#000',
@@ -245,41 +253,41 @@ const styles = StyleSheet.create({
     fontSize: 20, 
     fontWeight: '600',
     marginBottom: 4,
-    color: '#333',
+    color: COLORS.mint,
   },
   placeCity: { 
     fontSize: 14,
-    color: '#007AFF',
+    color: COLORS.teal,
     marginBottom: 8,
     fontWeight: '500',
   },
   placeDescription: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.white,
     lineHeight: 20,
     marginBottom: 8,
   },
   distanceText: {
     fontSize: 13,
-    color: '#888',
+    color: COLORS.teal,
     fontStyle: 'italic',
   },
   visited: { 
     backgroundColor: '#e8f5e9',
     borderWidth: 2,
-    borderColor: '#4caf50',
+    borderColor: COLORS.mint,
   },
   visitedBadge: {
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: '#4caf50',
+    backgroundColor: COLORS.mint,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
   visitedText: { 
-    color: '#fff', 
+    color: COLORS.white, 
     fontWeight: 'bold',
     fontSize: 12,
   },
