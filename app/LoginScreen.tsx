@@ -16,6 +16,23 @@ import {
 } from 'react-native';
 import { createUser, loginUser } from './services/api';
 
+// Web-compatible alert function
+const showAlert = (title: string, message: string, onOk?: () => void) => {
+  if (Platform.OS === 'web') {
+    // For web, use browser alert and console
+    console.log(`[${title}] ${message}`);
+    alert(`${title}\n\n${message}`);
+    if (onOk) onOk();
+  } else {
+    // For native, use Alert.alert
+    if (onOk) {
+      Alert.alert(title, message, [{ text: 'OK', onPress: onOk }]);
+    } else {
+      Alert.alert(title, message);
+    }
+  }
+};
+
 // Color palette
 const COLORS = {
   darkBlue: '#15292E',
@@ -224,84 +241,111 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    console.log('🔐 Login attempt started');
+    console.log('Email/Username:', email);
+    
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both username/email and password');
+      console.warn('⚠️ Validation failed: Missing email or password');
+      showAlert('Error', 'Please enter both username/email and password');
       return;
     }
 
     setLoading(true);
+    console.log('🔄 Loading state set to true, calling API...');
+    
     try {
       // Login using username or email
+      console.log('📡 Calling loginUser API...');
       const user = await loginUser(email, password);
+      console.log('✅ Login successful:', user);
       
       // Store user data in AsyncStorage
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('isLoggedIn', 'true');
+      console.log('💾 User data stored in AsyncStorage');
       
-      Alert.alert('Success', `Welcome back, ${user.username}!`);
+      showAlert('Success', `Welcome back, ${user.username}!`);
       
       // Navigate to HomeScreen after successful login
+      console.log('🚀 Navigating to HomeScreen...');
       router.replace('/HomeScreen');
     } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
+      console.error('❌ Login error:', error);
+      showAlert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
     } finally {
       setLoading(false);
+      console.log('🔄 Loading state set to false');
     }
   };
 
   const handleCreateAccount = async () => {
+    console.log('📝 Create account attempt started');
+    console.log('Username:', username);
+    console.log('Email:', email);
+    console.log('Password length:', password.length);
+    console.log('Confirm password length:', confirmPassword.length);
+    
     if (!username || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill all fields');
+      console.warn('⚠️ Validation failed: Missing required fields');
+      console.log('Username:', username || 'MISSING');
+      console.log('Email:', email || 'MISSING');
+      console.log('Password:', password ? 'PROVIDED' : 'MISSING');
+      console.log('Confirm Password:', confirmPassword ? 'PROVIDED' : 'MISSING');
+      showAlert('Error', 'Please fill all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      console.warn('⚠️ Validation failed: Passwords do not match');
+      showAlert('Error', 'Passwords do not match');
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      console.warn('⚠️ Validation failed: Invalid email format');
+      showAlert('Error', 'Please enter a valid email address');
       return;
     }
 
     // Password strength validation
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+      console.warn('⚠️ Validation failed: Password too short');
+      showAlert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
+    console.log('✅ All validations passed');
     setLoading(true);
+    console.log('🔄 Loading state set to true, calling API...');
+    
     try {
       // Create new user
+      console.log('📡 Calling createUser API with:', { username, email, passwordLength: password.length });
       const user = await createUser(username, password, email);
+      console.log('✅ Account created successfully:', user);
       
-      Alert.alert(
-        'Success', 
-        'Account created successfully! Please log in.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setIsLogin(true);
-              setPassword('');
-              setConfirmPassword('');
-            }
-          }
-        ]
-      );
+      showAlert('Success', 'Account created successfully! Please log in.', () => {
+        console.log('👤 Switching to login mode');
+        setIsLogin(true);
+        setPassword('');
+        setConfirmPassword('');
+      });
     } catch (error) {
-      console.error('Create account error:', error);
-      Alert.alert('Registration Failed', error instanceof Error ? error.message : 'Failed to create account');
+      console.error('❌ Create account error:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      showAlert('Registration Failed', error instanceof Error ? error.message : 'Failed to create account');
     } finally {
       setLoading(false);
+      console.log('🔄 Loading state set to false');
     }
   };
 
   const handleSubmit = () => {
+    console.log('🎯 Form submitted');
+    console.log('Mode:', isLogin ? 'LOGIN' : 'SIGNUP');
+    
     if (isLogin) {
       handleLogin();
     } else {
