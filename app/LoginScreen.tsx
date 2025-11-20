@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as AuthSession from 'expo-auth-session';
+import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+  View
 } from 'react-native';
-import { useRouter } from 'expo-router';
 
 // Color palette
 const COLORS = {
@@ -21,7 +26,207 @@ const COLORS = {
   white: '#fff',
 };
 
+WebBrowser.maybeCompleteAuthSession();
+
+
+const BACKEND_URL = Platform.OS === 'android'
+ ? "http://10.0.2.2:8080"
+ : "http://localhost:8080";
+
+
+const GITHUB_CLIENT_ID = Platform.OS === 'web'
+? 'Ov23liOiRYo73gYcLLyY'
+: 'Ov23liPIepqr03CaQkSy';
+
+const WEB_GOOGLE_CLIENT_ID = "125707708783-dmsogn4hns891vtucqj8pva07sq6odam.apps.googleusercontent.com";
+const IOS_GOOGLE_CLIENT_ID = "125707708783-2653sk3rppr4tq29rdfrdgvubecuik9l.apps.googleusercontent.com";
+const ANDROID_GOOGLE_CLIENT_ID = "125707708783-9lb5th2rqom1m2ff89ls34870qg0983b.apps.googleusercontent.com";
+
 export default function AuthScreen() {
+
+ const [githubLoading, setGithubLoading] = useState(false);
+ const [googleLoading, setGoogleLoading] = useState(false);
+ const [userInfo, setUserInfo] = useState(null);
+
+
+ const githubDiscovery = {
+   authorizationEndpoint: 'https://github.com/login/oauth/authorize',
+ };
+
+
+ const githubRedirectUri = Platform.OS === 'web'
+ ? 'http://localhost:8081'
+ : 'myapp://';
+
+
+ const [githubRequest, githubResponse, githubPromptAsync] = AuthSession.useAuthRequest(
+   {
+     clientId: GITHUB_CLIENT_ID,
+     scopes: ['user:email'],
+     redirectUri: githubRedirectUri,
+     usePKCE: false,
+   },
+   githubDiscovery
+ );
+
+
+ const googleDiscovery = {
+   authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+ };
+
+ const googleClientId = (() => {
+   if (Platform.OS === 'ios') {
+     return IOS_GOOGLE_CLIENT_ID;
+   } else if (Platform.OS === 'android') {
+     return ANDROID_GOOGLE_CLIENT_ID;
+   } else {
+     return WEB_GOOGLE_CLIENT_ID;
+   }
+ })();
+
+const googleRedirectUri = Platform.OS === 'web'
+  ? 'http://localhost:8081'
+  : 'com.googleusercontent.apps.125707708783-2653sk3rppr4tq29rdfrdgvubecuik9l:/oauth2redirect';
+
+const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRequest(
+  {
+    clientId: googleClientId,
+    scopes: ['email', 'profile'],
+    redirectUri: googleRedirectUri,
+    usePKCE: false,
+  },
+  googleDiscovery
+);
+
+
+ useEffect(() => {
+   if (githubResponse?.type === 'success') {
+     const { code } = githubResponse.params;
+     handleGitHubCode(code);
+   } else if (githubResponse?.type === 'error') {
+     Alert.alert("Error", "github fail");
+     setGithubLoading(false);
+   } else if (githubResponse?.type === 'dismiss' || githubResponse?.type === 'cancel') {
+     setGithubLoading(false);
+   }
+ }, [githubResponse]);
+
+
+ useEffect(() => {
+   if (googleResponse?.type === 'success') {
+     const { code } = googleResponse.params;
+     handleGoogleCode(code);
+   } else if (googleResponse?.type === 'error') {
+     Alert.alert("Error", "google fail");
+     setGoogleLoading(false);
+   } else if (googleResponse?.type === 'dismiss' || googleResponse?.type === 'cancel') {
+     setGoogleLoading(false);
+   }
+ }, [googleResponse]);
+
+
+ const handleGitHubCode = async (code: string) => {
+   try {
+     console.log("github code - ", code);
+     const platform = Platform.OS;
+
+     const response = await fetch(`${BACKEND_URL}/api/auth/github/exchange`, {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ code, platform }),
+     });
+
+
+     const data = await response.json();
+     console.log("github backend - ", data);
+
+
+     if (data.success && data.email) {
+       setUserInfo({
+         provider: 'GitHub',
+         email: data.email,
+         username: data.githubUsername,
+         name: data.name,
+         avatar: data.avatarUrl,
+       });
+      
+       await AsyncStorage.setItem("oauth_user", JSON.stringify(data));
+       Alert.alert("NICENICENICE", `logged in as ${data.githubUsername}`);
+     } else {
+       Alert.alert("Error", data.error || "NOOOOOOOOOOOO");
+     }
+
+
+     setGithubLoading(false);
+   } catch (error) {
+     setGithubLoading(false);
+     console.error("guthub error:", error);
+     Alert.alert("Error", `github error: ${error}`);
+   }
+ };
+
+
+ const handleGoogleCode = async (code: string) => {
+   try {
+     console.log("got google code:", code);
+     console.log("redirect uri:", googleRedirectUri);
+     console.log("platform:", Platform.OS);
+
+     const platform = Platform.OS;
+
+     const response = await fetch(`${BACKEND_URL}/api/auth/google/exchange`, {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({
+         code,
+         platform,
+         redirectUri: googleRedirectUri,
+       }),
+     });
+
+
+     const data = await response.json();
+     console.log("google backend - ", data);
+
+
+     if (data.success && data.email) {
+       setUserInfo({
+         provider: 'Google',
+         email: data.email,
+         username: data.googleUsername,
+         name: data.name,
+         avatar: data.avatarUrl,
+       });
+      
+       await AsyncStorage.setItem("oauth_user", JSON.stringify(data));
+       Alert.alert("NICEEEENICENICENICE", `logged in as ${data.name}`);
+     } else {
+       Alert.alert("Error", data.error || "NOOOOOOOOOOOO");
+     }
+
+
+     setGoogleLoading(false);
+   } catch (error) {
+     setGoogleLoading(false);
+     console.error("google error:", error);
+     Alert.alert("Error", `google error: ${error}`);
+   }
+ };
+
+
+ const handleGitHubLogin = () => {
+   console.log("github login");
+   setGithubLoading(true);
+   githubPromptAsync();
+ };
+
+
+ const handleGoogleLogin = () => {
+   console.log("google login");
+   setGoogleLoading(true);
+   googlePromptAsync();
+ };
+
   const router = useRouter();
 
   // Track whether user is on login or create account mode
@@ -105,6 +310,42 @@ export default function AuthScreen() {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+      {!userInfo ? (
+       <View>
+         {githubLoading ? (
+           <ActivityIndicator size="large" color="#333" />
+         ) : (
+           <TouchableOpacity
+             onPress={handleGitHubLogin}
+             disabled={!githubRequest}
+           >
+             <Text>login with github</Text>
+           </TouchableOpacity>
+         )}
+
+
+         <View/>
+
+
+         {googleLoading ? (
+           <ActivityIndicator size="large" color="#DB4437" />
+         ) : (
+           <TouchableOpacity
+             onPress={handleGoogleLogin}
+             disabled={!googleRequest}
+           >
+             <Text>login with google</Text>
+           </TouchableOpacity>
+         )}
+       </View>
+     ) : (
+       <View>
+         <Text>Name: {userInfo.name}</Text>
+         <Text>Username: {userInfo.username}</Text>
+         <Text>Email: {userInfo.email}</Text>
+       </View>
+     )}
+
     </SafeAreaView>
   );
 }
