@@ -24,7 +24,6 @@ const showAlert = (title: string, message: string, onOk?: () => void) => {
     alert(`${title}\n\n${message}`);
     if (onOk) onOk();
   } else {
-    // For native, use Alert.alert
     if (onOk) {
       Alert.alert(title, message, [{ text: 'OK', onPress: onOk }]);
     } else {
@@ -274,14 +273,13 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
       return;
     }
 
-    // Basic email validation
+    // Basic email validation - uses regex java object
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       showAlert('Error', 'Please enter a valid email address');
       return;
     }
 
-    // Password strength validation
     if (password.length < 6) {
       showAlert('Error', 'Password must be at least 6 characters long');
       return;

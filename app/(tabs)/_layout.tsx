@@ -1,12 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
-// Match the theme from your screens
 const COLORS = {
-  darkBlue: '#15292E',   // Background primary dark
-  tealDark: '#074047',   // Card background
-  teal: '#108585',       // Accent text / subheaders
-  mint: '#1DA27E',       // Main highlights / buttons
+  darkBlue: '#15292E',
+  tealDark: '#074047',
+  teal: '#108585',
+  mint: '#1DA27E',
   white: '#fff',
 };
 
@@ -15,11 +14,11 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.mint,      // Active tab color
-        tabBarInactiveTintColor: COLORS.teal,    // Inactive tab color
+        tabBarActiveTintColor: COLORS.mint,
+        tabBarInactiveTintColor: COLORS.teal,
         tabBarStyle: {
-          backgroundColor: COLORS.darkBlue,      // Tab bar background
-          borderTopColor: COLORS.tealDark,       // Top border
+          backgroundColor: COLORS.darkBlue,
+          borderTopColor: COLORS.tealDark,
           borderTopWidth: 1,
         },
         tabBarLabelStyle: {
@@ -43,15 +42,6 @@ export default function TabLayout() {
           title: 'Decks',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="albums" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="CheckInScreen"
-        options={{
-          title: 'Check In',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="location" size={size} color={color} />
           ),
         }}
       />
