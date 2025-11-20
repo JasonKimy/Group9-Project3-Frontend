@@ -92,7 +92,7 @@ export default function AuthScreen() {
             />
           )}
 
-          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <TouchableOpacity style={styles.button} onPress={handleSubmit} testID={isLogin ? "login-button" : "create-button"}>
             <Text style={styles.buttonText}>{isLogin ? 'Login' : 'Create Account'}</Text>
           </TouchableOpacity>
 
