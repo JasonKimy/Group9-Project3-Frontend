@@ -45,6 +45,18 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="CheckInScreen"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="models"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
