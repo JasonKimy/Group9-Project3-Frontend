@@ -300,3 +300,15 @@ export async function loginUser(usernameOrEmail: string, password: string): Prom
 
   return user;
 }
+
+// There is likely a more secure way to do this
+// We just grab the user with the email we got and log them in
+export async function loginOAuth(email: string) : Promise<User> {
+  let user: User;
+  try {
+    user = await getUserByEmail(email);
+  } catch (emailError) {
+    throw new Error('Account does not exist');
+  }
+  return user;
+}

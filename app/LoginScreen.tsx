@@ -1,7 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as AuthSession from 'expo-auth-session';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,9 +13,10 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { createUser, loginUser } from './services/api';
+import { createUser, loginOAuth, loginUser } from './services/api';
 
 // Web-compatible alert function
 const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -43,7 +45,6 @@ const COLORS = {
 
 WebBrowser.maybeCompleteAuthSession();
 
-/* OAuth configuration - currently disabled
 const BACKEND_URL = Platform.OS === 'android'
  ? "http://10.0.2.2:8080"
  : "http://localhost:8080";
@@ -55,14 +56,23 @@ const GITHUB_CLIENT_ID = Platform.OS === 'web'
 const WEB_GOOGLE_CLIENT_ID = "125707708783-dmsogn4hns891vtucqj8pva07sq6odam.apps.googleusercontent.com";
 const IOS_GOOGLE_CLIENT_ID = "125707708783-2653sk3rppr4tq29rdfrdgvubecuik9l.apps.googleusercontent.com";
 const ANDROID_GOOGLE_CLIENT_ID = "125707708783-9lb5th2rqom1m2ff89ls34870qg0983b.apps.googleusercontent.com";
-*/
 
 export default function AuthScreen() {
 
- /* OAuth code - currently disabled
  const [githubLoading, setGithubLoading] = useState(false);
  const [googleLoading, setGoogleLoading] = useState(false);
  const [userInfo, setUserInfo] = useState(null);
+
+ const router = useRouter();
+
+  // Track whether user is on login or create account mode
+  const [isLogin, setIsLogin] = useState(true);
+
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
  const githubDiscovery = {
    authorizationEndpoint: 'https://github.com/login/oauth/authorize',
@@ -149,16 +159,7 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
      console.log("github backend - ", data);
 
      if (data.success && data.email) {
-       setUserInfo({
-         provider: 'GitHub',
-         email: data.email,
-         username: data.githubUsername,
-         name: data.name,
-         avatar: data.avatarUrl,
-       });
-      
-       await AsyncStorage.setItem("oauth_user", JSON.stringify(data));
-       Alert.alert("NICENICENICE", `logged in as ${data.githubUsername}`);
+      oauthLogin(data.email);
      } else {
        Alert.alert("Error", data.error || "NOOOOOOOOOOOO");
      }
@@ -191,18 +192,9 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
 
      const data = await response.json();
      console.log("google backend - ", data);
-
+     
      if (data.success && data.email) {
-       setUserInfo({
-         provider: 'Google',
-         email: data.email,
-         username: data.googleUsername,
-         name: data.name,
-         avatar: data.avatarUrl,
-       });
-      
-       await AsyncStorage.setItem("oauth_user", JSON.stringify(data));
-       Alert.alert("NICEEEENICENICENICE", `logged in as ${data.name}`);
+      oauthLogin(data.email);
      } else {
        Alert.alert("Error", data.error || "NOOOOOOOOOOOO");
      }
@@ -226,18 +218,6 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
    setGoogleLoading(true);
    googlePromptAsync();
  };
- */
-
-  const router = useRouter();
-
-  // Track whether user is on login or create account mode
-  const [isLogin, setIsLogin] = useState(true);
-
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -257,6 +237,29 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
       router.replace('/(tabs)/HomeScreen');
     } catch (error) {
       showAlert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const oauthLogin = async (userEmail: string) => {
+    if (!userEmail) {
+      showAlert('Error', 'Authentication failed');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const user = await loginOAuth(userEmail);
+      
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      await AsyncStorage.setItem('isLoggedIn', 'true');
+      
+      showAlert('Success', `Welcome back, ${user.username}!`);
+      router.replace('/(tabs)/HomeScreen');
+    } catch (error) {
+      showAlert('Login Failed', error instanceof Error ? error.message : 'User does not exist');
     } finally {
       setLoading(false);
     }
@@ -396,8 +399,6 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
         </ScrollView>
       </KeyboardAvoidingView>
       
-      {/* OAuth login section - currently disabled
-      {!userInfo ? (
        <View>
          {githubLoading ? (
            <ActivityIndicator size="large" color="#333" />
@@ -423,14 +424,6 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
            </TouchableOpacity>
          )}
        </View>
-     ) : (
-       <View>
-         <Text>Name: {userInfo.name}</Text>
-         <Text>Username: {userInfo.username}</Text>
-         <Text>Email: {userInfo.email}</Text>
-       </View>
-     )}
-      */}
 
     </SafeAreaView>
   );
