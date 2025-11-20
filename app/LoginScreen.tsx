@@ -1,8 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as AuthSession from 'expo-auth-session';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,9 +12,25 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
-  View
+  TouchableOpacity
 } from 'react-native';
+import { createUser, loginUser } from './services/api';
+
+// Web-compatible alert function
+const showAlert = (title: string, message: string, onOk?: () => void) => {
+  if (Platform.OS === 'web') {
+    // For web, use browser alert and console
+    console.log(`[${title}] ${message}`);
+    alert(`${title}\n\n${message}`);
+    if (onOk) onOk();
+  } else {
+    if (onOk) {
+      Alert.alert(title, message, [{ text: 'OK', onPress: onOk }]);
+    } else {
+      Alert.alert(title, message);
+    }
+  }
+};
 
 // Color palette
 const COLORS = {
@@ -28,11 +43,10 @@ const COLORS = {
 
 WebBrowser.maybeCompleteAuthSession();
 
-
+/* OAuth configuration - currently disabled
 const BACKEND_URL = Platform.OS === 'android'
  ? "http://10.0.2.2:8080"
  : "http://localhost:8080";
-
 
 const GITHUB_CLIENT_ID = Platform.OS === 'web'
 ? 'Ov23liOiRYo73gYcLLyY'
@@ -41,23 +55,22 @@ const GITHUB_CLIENT_ID = Platform.OS === 'web'
 const WEB_GOOGLE_CLIENT_ID = "125707708783-dmsogn4hns891vtucqj8pva07sq6odam.apps.googleusercontent.com";
 const IOS_GOOGLE_CLIENT_ID = "125707708783-2653sk3rppr4tq29rdfrdgvubecuik9l.apps.googleusercontent.com";
 const ANDROID_GOOGLE_CLIENT_ID = "125707708783-9lb5th2rqom1m2ff89ls34870qg0983b.apps.googleusercontent.com";
+*/
 
 export default function AuthScreen() {
 
+ /* OAuth code - currently disabled
  const [githubLoading, setGithubLoading] = useState(false);
  const [googleLoading, setGoogleLoading] = useState(false);
  const [userInfo, setUserInfo] = useState(null);
-
 
  const githubDiscovery = {
    authorizationEndpoint: 'https://github.com/login/oauth/authorize',
  };
 
-
  const githubRedirectUri = Platform.OS === 'web'
  ? 'http://localhost:8081'
  : 'myapp://';
-
 
  const [githubRequest, githubResponse, githubPromptAsync] = AuthSession.useAuthRequest(
    {
@@ -68,7 +81,6 @@ export default function AuthScreen() {
    },
    githubDiscovery
  );
-
 
  const googleDiscovery = {
    authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -98,7 +110,6 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
   googleDiscovery
 );
 
-
  useEffect(() => {
    if (githubResponse?.type === 'success') {
      const { code } = githubResponse.params;
@@ -110,7 +121,6 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
      setGithubLoading(false);
    }
  }, [githubResponse]);
-
 
  useEffect(() => {
    if (googleResponse?.type === 'success') {
@@ -124,7 +134,6 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
    }
  }, [googleResponse]);
 
-
  const handleGitHubCode = async (code: string) => {
    try {
      console.log("github code - ", code);
@@ -136,10 +145,8 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
        body: JSON.stringify({ code, platform }),
      });
 
-
      const data = await response.json();
      console.log("github backend - ", data);
-
 
      if (data.success && data.email) {
        setUserInfo({
@@ -156,7 +163,6 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
        Alert.alert("Error", data.error || "NOOOOOOOOOOOO");
      }
 
-
      setGithubLoading(false);
    } catch (error) {
      setGithubLoading(false);
@@ -164,7 +170,6 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
      Alert.alert("Error", `github error: ${error}`);
    }
  };
-
 
  const handleGoogleCode = async (code: string) => {
    try {
@@ -184,10 +189,8 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
        }),
      });
 
-
      const data = await response.json();
      console.log("google backend - ", data);
-
 
      if (data.success && data.email) {
        setUserInfo({
@@ -204,7 +207,6 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
        Alert.alert("Error", data.error || "NOOOOOOOOOOOO");
      }
 
-
      setGoogleLoading(false);
    } catch (error) {
      setGoogleLoading(false);
@@ -213,48 +215,98 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
    }
  };
 
-
  const handleGitHubLogin = () => {
    console.log("github login");
    setGithubLoading(true);
    githubPromptAsync();
  };
 
-
  const handleGoogleLogin = () => {
    console.log("google login");
    setGoogleLoading(true);
    googlePromptAsync();
  };
+ */
 
   const router = useRouter();
 
   // Track whether user is on login or create account mode
   const [isLogin, setIsLogin] = useState(true);
 
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      showAlert('Error', 'Please enter both username/email and password');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const user = await loginUser(email, password);
+      
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+      await AsyncStorage.setItem('isLoggedIn', 'true');
+      
+      showAlert('Success', `Welcome back, ${user.username}!`);
+      router.replace('/(tabs)/HomeScreen');
+    } catch (error) {
+      showAlert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateAccount = async () => {
+    if (!username || !email || !password || !confirmPassword) {
+      showAlert('Error', 'Please fill all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showAlert('Error', 'Passwords do not match');
+      return;
+    }
+
+    // Basic email validation - uses regex java object
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showAlert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    if (password.length < 6) {
+      showAlert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const user = await createUser(username, password, email);
+      
+      showAlert('Success', 'Account created successfully! Please log in.', () => {
+        setIsLogin(true);
+        setPassword('');
+        setConfirmPassword('');
+      });
+    } catch (error) {
+      showAlert('Registration Failed', error instanceof Error ? error.message : 'Failed to create account');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = () => {
-    if (!email || !password || (!isLogin && !confirmPassword)) {
-      alert('Please fill all fields');
-      return;
-    }
-
-    if (!isLogin && password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    console.log(isLogin ? 'Logging in...' : 'Creating account...', { email, password });
-
-    // Navigate to HomeScreen after login
     if (isLogin) {
-      router.replace('/HomeScreen'); // send user into your tab navigator
+      handleLogin();
     } else {
-      setIsLogin(true);
-      alert('Account created! Please log in.');
+      handleCreateAccount();
     }
   };
 
@@ -267,14 +319,27 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
         <ScrollView contentContainerStyle={styles.container}>
           <Text style={styles.title}>{isLogin ? 'Login' : 'Create Account'}</Text>
 
+          {!isLogin && (
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              placeholderTextColor={COLORS.teal}
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              editable={!loading}
+            />
+          )}
+
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder={isLogin ? "Username or Email" : "Email"}
             placeholderTextColor={COLORS.teal}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            editable={!loading}
           />
 
           <TextInput
@@ -284,6 +349,7 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            editable={!loading}
           />
 
           {!isLogin && (
@@ -294,14 +360,33 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
+              editable={!loading}
             />
           )}
 
-          <TouchableOpacity style={styles.button} onPress={handleSubmit} testID={isLogin ? "login-button" : "create-button"}>
-            <Text style={styles.buttonText}>{isLogin ? 'Login' : 'Create Account'}</Text>
+          <TouchableOpacity 
+            style={[styles.button, loading && styles.buttonDisabled]} 
+            onPress={handleSubmit} 
+            disabled={loading}
+            testID={isLogin ? "login-button" : "create-button"}
+          >
+            {loading ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <Text style={styles.buttonText}>{isLogin ? 'Login' : 'Create Account'}</Text>
+            )}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+          <TouchableOpacity 
+            onPress={() => {
+              setIsLogin(!isLogin);
+              setUsername('');
+              setEmail('');
+              setPassword('');
+              setConfirmPassword('');
+            }}
+            disabled={loading}
+          >
             <Text style={styles.toggleText}>
               {isLogin
                 ? "Don't have an account? Create one"
@@ -310,6 +395,8 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+      
+      {/* OAuth login section - currently disabled
       {!userInfo ? (
        <View>
          {githubLoading ? (
@@ -323,9 +410,7 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
            </TouchableOpacity>
          )}
 
-
          <View/>
-
 
          {googleLoading ? (
            <ActivityIndicator size="large" color="#DB4437" />
@@ -345,6 +430,7 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
          <Text>Email: {userInfo.email}</Text>
        </View>
      )}
+      */}
 
     </SafeAreaView>
   );
@@ -370,6 +456,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.mint,
     alignItems: 'center',
     marginBottom: 16,
+  },
+  buttonDisabled: {
+    backgroundColor: COLORS.teal,
+    opacity: 0.6,
   },
   buttonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 18 },
   toggleText: { color: COLORS.teal, textAlign: 'center', marginTop: 10, fontSize: 14 },
