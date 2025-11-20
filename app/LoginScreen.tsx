@@ -241,62 +241,35 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    console.log('🔐 Login attempt started');
-    console.log('Email/Username:', email);
-    
     if (!email || !password) {
-      console.warn('⚠️ Validation failed: Missing email or password');
       showAlert('Error', 'Please enter both username/email and password');
       return;
     }
 
     setLoading(true);
-    console.log('🔄 Loading state set to true, calling API...');
     
     try {
-      // Login using username or email
-      console.log('📡 Calling loginUser API...');
       const user = await loginUser(email, password);
-      console.log('✅ Login successful:', user);
       
-      // Store user data in AsyncStorage
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('isLoggedIn', 'true');
-      console.log('💾 User data stored in AsyncStorage');
       
       showAlert('Success', `Welcome back, ${user.username}!`);
-      
-      // Navigate to HomeScreen after successful login
-      console.log('🚀 Navigating to HomeScreen...');
-      router.replace('/HomeScreen');
+      router.replace('/(tabs)/HomeScreen');
     } catch (error) {
-      console.error('❌ Login error:', error);
       showAlert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
     } finally {
       setLoading(false);
-      console.log('🔄 Loading state set to false');
     }
   };
 
   const handleCreateAccount = async () => {
-    console.log('📝 Create account attempt started');
-    console.log('Username:', username);
-    console.log('Email:', email);
-    console.log('Password length:', password.length);
-    console.log('Confirm password length:', confirmPassword.length);
-    
     if (!username || !email || !password || !confirmPassword) {
-      console.warn('⚠️ Validation failed: Missing required fields');
-      console.log('Username:', username || 'MISSING');
-      console.log('Email:', email || 'MISSING');
-      console.log('Password:', password ? 'PROVIDED' : 'MISSING');
-      console.log('Confirm Password:', confirmPassword ? 'PROVIDED' : 'MISSING');
       showAlert('Error', 'Please fill all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      console.warn('⚠️ Validation failed: Passwords do not match');
       showAlert('Error', 'Passwords do not match');
       return;
     }
@@ -304,48 +277,34 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      console.warn('⚠️ Validation failed: Invalid email format');
       showAlert('Error', 'Please enter a valid email address');
       return;
     }
 
     // Password strength validation
     if (password.length < 6) {
-      console.warn('⚠️ Validation failed: Password too short');
       showAlert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
-    console.log('✅ All validations passed');
     setLoading(true);
-    console.log('🔄 Loading state set to true, calling API...');
     
     try {
-      // Create new user
-      console.log('📡 Calling createUser API with:', { username, email, passwordLength: password.length });
       const user = await createUser(username, password, email);
-      console.log('✅ Account created successfully:', user);
       
       showAlert('Success', 'Account created successfully! Please log in.', () => {
-        console.log('👤 Switching to login mode');
         setIsLogin(true);
         setPassword('');
         setConfirmPassword('');
       });
     } catch (error) {
-      console.error('❌ Create account error:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
       showAlert('Registration Failed', error instanceof Error ? error.message : 'Failed to create account');
     } finally {
       setLoading(false);
-      console.log('🔄 Loading state set to false');
     }
   };
 
   const handleSubmit = () => {
-    console.log('🎯 Form submitted');
-    console.log('Mode:', isLogin ? 'LOGIN' : 'SIGNUP');
-    
     if (isLogin) {
       handleLogin();
     } else {

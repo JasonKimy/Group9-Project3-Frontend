@@ -200,10 +200,6 @@ export async function createUser(
   password: string,
   email: string
 ): Promise<User> {
-  console.log('🔧 API: createUser called');
-  console.log('URL:', `${API_BASE_URL}/users`);
-  console.log('Payload:', { username, email, passwordLength: password.length });
-  
   try {
     const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'POST',
@@ -213,12 +209,8 @@ export async function createUser(
       body: JSON.stringify({ username, password, email }),
     });
 
-    console.log('📥 Response status:', response.status);
-    console.log('📥 Response ok:', response.ok);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ API Error Response:', errorText);
       
       if (response.status === 409) {
         throw new Error('Username or email already exists');
@@ -227,10 +219,8 @@ export async function createUser(
     }
     
     const data = await response.json();
-    console.log('✅ API: User created successfully:', data);
     return data;
   } catch (error) {
-    console.error('❌ API: createUser error:', error);
     throw error;
   }
 }
@@ -291,35 +281,22 @@ export async function checkEmailExists(email: string): Promise<boolean> {
  * login endpoint on the backend that handles password hashing properly.
  */
 export async function loginUser(usernameOrEmail: string, password: string): Promise<User> {
-  console.log('🔧 API: loginUser called');
-  console.log('Username/Email:', usernameOrEmail);
-  
-  // Try to get user by username first, then by email
   let user: User;
   try {
-    console.log('📡 Trying to fetch user by username...');
     user = await getUserByUsername(usernameOrEmail);
-    console.log('✅ Found user by username:', user.username);
   } catch (error) {
-    console.log('⚠️ Username not found, trying email...');
-    // If username doesn't exist, try email
     try {
       user = await getUserByEmail(usernameOrEmail);
-      console.log('✅ Found user by email:', user.username);
     } catch (emailError) {
-      console.error('❌ User not found by username or email');
       throw new Error('Invalid username/email or password');
     }
   }
 
   // Note: In production, password validation should be done on the backend
   // For now, we're doing a simple comparison (not secure for production!)
-  console.log('🔒 Validating password...');
   if (user.password !== password) {
-    console.error('❌ Password mismatch');
     throw new Error('Invalid username/email or password');
   }
 
-  console.log('✅ Login successful');
   return user;
 }
