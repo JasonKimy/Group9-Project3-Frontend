@@ -5,6 +5,15 @@
 
 const API_BASE_URL = 'https://wander-api-196ebd783842.herokuapp.com/api';
 
+export interface User {
+  id: string;
+  username: string;
+  password?: string; // Optional since we won't always receive it from backend
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Place {
   id: string;
   name: string;
@@ -177,4 +186,129 @@ export function calculateDistance(
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+// ============================================
+// USER API FUNCTIONS
+// ============================================
+
+/**
+ * Create a new user account
+ */
+export async function createUser(
+  username: string,
+  password: string,
+  email: string
+): Promise<User> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, password, email }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      
+      if (response.status === 409) {
+        throw new Error('Username or email already exists');
+      }
+      throw new Error(`Failed to create user: ${response.status} - ${errorText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Get user by username (for login validation)
+ */
+export async function getUserByUsername(username: string): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/users/username/${username}`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('User not found');
+    }
+    throw new Error(`Failed to fetch user: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Get user by email
+ */
+export async function getUserByEmail(email: string): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/users/email/${email}`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('User not found');
+    }
+    throw new Error(`Failed to fetch user: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Check if username exists
+ */
+export async function checkUsernameExists(username: string): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}/users/check/username/${username}`);
+  if (!response.ok) {
+    throw new Error(`Failed to check username: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Check if email exists
+ */
+export async function checkEmailExists(email: string): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}/users/check/email/${email}`);
+  if (!response.ok) {
+    throw new Error(`Failed to check email: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Login user - validates credentials
+ * Note: This is a client-side validation. In production, you should have a dedicated
+ * login endpoint on the backend that handles password hashing properly.
+ */
+export async function loginUser(usernameOrEmail: string, password: string): Promise<User> {
+  let user: User;
+  try {
+    user = await getUserByUsername(usernameOrEmail);
+  } catch (error) {
+    try {
+      user = await getUserByEmail(usernameOrEmail);
+    } catch (emailError) {
+      throw new Error('Invalid username/email or password');
+    }
+  }
+
+  // Note: In production, password validation should be done on the backend
+  // For now, we're doing a simple comparison (not secure for production!)
+  if (user.password !== password) {
+    throw new Error('Invalid username/email or password');
+  }
+
+  return user;
+}
+
+// There is likely a more secure way to do this
+// We just grab the user with the email we got and log them in
+export async function loginOAuth(email: string) : Promise<User> {
+  let user: User;
+  try {
+    user = await getUserByEmail(email);
+  } catch (emailError) {
+    throw new Error('Account does not exist');
+  }
+  return user;
 }

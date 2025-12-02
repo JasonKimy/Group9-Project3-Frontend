@@ -11,6 +11,15 @@ interface Deck {
   description: string;
 }
 
+//color palette
+const COLORS = {
+  darkBlue: '#15292E',   // Background primary dark
+  tealDark: '#074047',   // Card background
+  teal: '#108585',       // Accent text / subheaders
+  mint: '#1DA27E',       // Main highlights / buttons
+  white: '#fff',
+};
+
 export default function HomeScreen() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,8 +147,8 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#007AFF']}
-            tintColor="#007AFF"
+            colors={[COLORS.mint]}
+            tintColor={COLORS.mint}
           />
         }
         contentContainerStyle={styles.listContent}
@@ -151,42 +160,42 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.darkBlue,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: COLORS.white,
   },
   headerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.tealDark,
     padding: 20,
     paddingTop: 60,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: COLORS.teal,
   },
   header: { 
     fontSize: 32, 
     fontWeight: 'bold', 
     marginBottom: 8,
-    color: '#333',
+    color: COLORS.mint,
   },
   subheader: {
     fontSize: 16,
-    color: '#666',
+    color: COLORS.teal,
   },
   listContent: {
     padding: 16,
   },
   deckCard: { 
     padding: 20, 
-    backgroundColor: '#fff', 
+    backgroundColor: COLORS.tealDark, 
     marginVertical: 8, 
     borderRadius: 16,
     shadowColor: '#000',
@@ -210,15 +219,15 @@ const styles = StyleSheet.create({
     fontSize: 22, 
     fontWeight: '600',
     marginBottom: 4,
-    color: '#333',
+    color: COLORS.mint,
   },
   deckDescription: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.white,
   },
   arrow: {
     fontSize: 32,
-    color: '#c7c7cc',
+    color: COLORS.mint,
     fontWeight: '300',
   },
 });
