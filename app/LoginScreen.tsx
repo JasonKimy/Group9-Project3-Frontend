@@ -16,7 +16,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { createUser, loginOAuth, loginUser } from './services/api';
+import { createDeck, createUser, fetchCategories, loginOAuth, loginUser } from './services/api';
 
 // Web-compatible alert function
 const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -72,7 +72,21 @@ export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [favChallenge1, setFavChallenge1] = useState('');
+  const [favChallenge2, setFavChallenge2] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Available categories for challenges
+  const availableCategories = [
+    { label: 'Coffee Shop', value: 'coffee_shop' },
+    { label: 'Restaurant', value: 'restaurant' },
+    { label: 'Park', value: 'park' },
+    { label: 'Beach', value: 'beach' },
+    { label: 'Museum', value: 'museum' },
+    { label: 'Gym', value: 'gym' },
+    { label: 'Bar', value: 'bar' },
+    { label: 'Cafe', value: 'cafe' },
+  ];
 
  const githubDiscovery = {
    authorizationEndpoint: 'https://github.com/login/oauth/authorize',
@@ -288,15 +302,46 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
       return;
     }
 
+    if (!favChallenge1 || !favChallenge2) {
+      showAlert('Error', 'Please select both favorite challenges');
+      return;
+    }
+
+    if (favChallenge1 === favChallenge2) {
+      showAlert('Error', 'Please select two different challenges');
+      return;
+    }
+
     setLoading(true);
     
     try {
-      const user = await createUser(username, password, email);
+      // Create the user account
+      const user = await createUser(username, password, email, favChallenge1, favChallenge2);
       
-      showAlert('Success', 'Account created successfully! Please log in.', () => {
+      // Get all available categories to select a random one
+      const allCategories = await fetchCategories();
+      const nonFavoriteCategories = allCategories.filter(
+        (cat) => cat !== favChallenge1 && cat !== favChallenge2
+      );
+      
+      // Select a random category
+      const randomCategory = nonFavoriteCategories.length > 0
+        ? nonFavoriteCategories[Math.floor(Math.random() * nonFavoriteCategories.length)]
+        : allCategories[0]; // Fallback to first category if no non-favorite exists
+
+      // Create 3 decks: 2 favorite challenges + 1 random
+      await Promise.all([
+        createDeck(user.id, favChallenge1),
+        createDeck(user.id, favChallenge2),
+        createDeck(user.id, randomCategory),
+      ]);
+      
+      showAlert('Success', 'Account created successfully! Your challenges are ready. Please log in.', () => {
         setIsLogin(true);
         setPassword('');
         setConfirmPassword('');
+        setFavChallenge1('');
+        setFavChallenge2('');
       });
     } catch (error) {
       showAlert('Registration Failed', error instanceof Error ? error.message : 'Failed to create account');
@@ -367,6 +412,58 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
             />
           )}
 
+          {!isLogin && (
+            <View style={styles.challengeContainer}>
+              <Text style={styles.challengeLabel}>Favorite Challenge 1</Text>
+              <View style={styles.categoryGrid}>
+                {availableCategories.map((cat) => (
+                  <TouchableOpacity
+                    key={`fav1-${cat.value}`}
+                    style={[
+                      styles.categoryButton,
+                      favChallenge1 === cat.value && styles.categoryButtonSelected
+                    ]}
+                    onPress={() => setFavChallenge1(cat.value)}
+                    disabled={loading}
+                  >
+                    <Text style={[
+                      styles.categoryButtonText,
+                      favChallenge1 === cat.value && styles.categoryButtonTextSelected
+                    ]}>
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {!isLogin && (
+            <View style={styles.challengeContainer}>
+              <Text style={styles.challengeLabel}>Favorite Challenge 2</Text>
+              <View style={styles.categoryGrid}>
+                {availableCategories.map((cat) => (
+                  <TouchableOpacity
+                    key={`fav2-${cat.value}`}
+                    style={[
+                      styles.categoryButton,
+                      favChallenge2 === cat.value && styles.categoryButtonSelected
+                    ]}
+                    onPress={() => setFavChallenge2(cat.value)}
+                    disabled={loading}
+                  >
+                    <Text style={[
+                      styles.categoryButtonText,
+                      favChallenge2 === cat.value && styles.categoryButtonTextSelected
+                    ]}>
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
           <TouchableOpacity 
             style={[styles.button, loading && styles.buttonDisabled]} 
             onPress={handleSubmit} 
@@ -387,6 +484,8 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
               setEmail('');
               setPassword('');
               setConfirmPassword('');
+              setFavChallenge1('');
+              setFavChallenge2('');
             }}
             disabled={loading}
           >
@@ -456,4 +555,40 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 18 },
   toggleText: { color: COLORS.teal, textAlign: 'center', marginTop: 10, fontSize: 14 },
+  challengeContainer: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  challengeLabel: {
+    color: COLORS.mint,
+    fontSize: 16,
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  categoryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: COLORS.tealDark,
+    borderWidth: 2,
+    borderColor: COLORS.tealDark,
+  },
+  categoryButtonSelected: {
+    backgroundColor: COLORS.mint,
+    borderColor: COLORS.mint,
+  },
+  categoryButtonText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  categoryButtonTextSelected: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+  },
 });

@@ -1,15 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchCategories, fetchPlacesByCategory } from '../services/api';
-
-interface Deck {
-  id: string;
-  name: string;
-  category: string;
-  placeCount: number;
-  description: string;
-}
+import { getUserDecks, User, Deck } from '../services/api';
 
 //color palette
 const COLORS = {
@@ -28,31 +21,27 @@ export default function HomeScreen() {
 
   const loadDecks = async () => {
     try {
-      const categories = await fetchCategories();
-      
-      const deckPromises = categories.map(async (category) => {
-        try {
-          const places = await fetchPlacesByCategory(category);
-          return {
-            id: category,
-            name: formatCategoryName(category),
-            category: category,
-            placeCount: places.length,
-            description: getCategoryDescription(category, places.length),
-          };
-        } catch (err) {
-          console.error(`Error fetching places for ${category}:`, err);
-          return null;
-        }
-      });
+      // Get current user from AsyncStorage
+      const userJson = await AsyncStorage.getItem('user');
+      if (!userJson) {
+        console.log('No user found in storage');
+        setDecks([]);
+        return;
+      }
 
-      const deckResults = await Promise.all(deckPromises);
-      const validDecks = deckResults.filter((deck): deck is Deck => deck !== null && deck.placeCount > 0);
-      validDecks.sort((a, b) => b.placeCount - a.placeCount);
-      
-      setDecks(validDecks);
+      const user: User = JSON.parse(userJson);
+      if (!user.id) {
+        console.log('User has no ID');
+        setDecks([]);
+        return;
+      }
+
+      // Fetch user's decks from the backend
+      const userDecks = await getUserDecks(user.id);
+      setDecks(userDecks);
     } catch (err) {
       console.error('Error loading decks:', err);
+      setDecks([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -121,13 +110,13 @@ export default function HomeScreen() {
       <View style={styles.headerContainer}>
         <Text style={styles.header}>This Week's Challenges</Text>
         <Text style={styles.subheader}>
-          Explore {decks.reduce((sum, deck) => sum + deck.placeCount, 0)} amazing places
+          Explore {decks.reduce((sum, deck) => sum + deck.places.length, 0)} amazing places
         </Text>
       </View>
       
       <FlatList
         data={decks}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.deckCard}
@@ -136,8 +125,10 @@ export default function HomeScreen() {
             <View style={styles.deckHeader}>
               <Text style={styles.deckEmoji}>{getCategoryEmoji(item.category)}</Text>
               <View style={styles.deckInfo}>
-                <Text style={styles.deckName}>{item.name}</Text>
-                <Text style={styles.deckDescription}>{item.description}</Text>
+                <Text style={styles.deckName}>{formatCategoryName(item.category)}</Text>
+                <Text style={styles.deckDescription}>
+                  {getCategoryDescription(item.category, item.places.length)}
+                </Text>
               </View>
               <Text style={styles.arrow}>›</Text>
             </View>
