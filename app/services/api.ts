@@ -25,6 +25,9 @@ export interface Place {
   lon: number;
   city: string;
   description: string;
+  // Client-side properties
+  visited?: boolean;
+  distance?: number; // Distance from user in km
 }
 
 /**
