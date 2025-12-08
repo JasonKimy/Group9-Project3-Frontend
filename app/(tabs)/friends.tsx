@@ -1,6 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 
+// API base URL - should match the backend deployment
+const API_BASE_URL = 'https://wander-api-196ebd783842.herokuapp.com/api';
+
 interface Friend {
   id: string;
   username: string;
@@ -41,10 +44,10 @@ export default function Friends() {
         if (!userId) return;
         try {
           // Fetch friends using the user's ID
-          const response1 = await fetch(`http://localhost:8080/api/friends/${userId}`);
-          const response2 = await fetch(`http://localhost:8080/api/friends/sent/${userId}`);
-          const response3 = await fetch(`http://localhost:8080/api/friends/incoming/${userId}`);
-          const response4 = await fetch(`http://localhost:8080/api/friends/blocked/${userId}`);
+          const response1 = await fetch(`${API_BASE_URL}/friends/${userId}`);
+          const response2 = await fetch(`${API_BASE_URL}/friends/sent/${userId}`);
+          const response3 = await fetch(`${API_BASE_URL}/friends/incoming/${userId}`);
+          const response4 = await fetch(`${API_BASE_URL}/friends/blocked/${userId}`);
           
           const friends = [...await response1.json()];
           const pending = [...await response2.json()];
@@ -52,25 +55,25 @@ export default function Friends() {
           const blocked = [...await response4.json()];
 
           for (let i = 0; i < friends.length; i++) {
-            const userResponse = await fetch(`http://localhost:8080/api/users/${friends[i].friend_2_id}`);
+            const userResponse = await fetch(`${API_BASE_URL}/users/${friends[i].friend_2_id}`);
             const user = await userResponse.json();
             friends[i].username = user.username;
           }
           
           for (let i = 0; i < pending.length; i++) {
-            const userResponse = await fetch(`http://localhost:8080/api/users/${pending[i].friend_2_id}`);
+            const userResponse = await fetch(`${API_BASE_URL}/users/${pending[i].friend_2_id}`);
             const user = await userResponse.json();
             pending[i].username = user.username;
           }
           
           for (let i = 0; i < incoming.length; i++) {
-            const userResponse = await fetch(`http://localhost:8080/api/users/${incoming[i].friend_1_id}`);
+            const userResponse = await fetch(`${API_BASE_URL}/users/${incoming[i].friend_1_id}`);
             const user = await userResponse.json();
             incoming[i].username = user.username;
           }
 
           for (let i = 0; i < blocked.length; i++) {
-            const userResponse = await fetch(`http://localhost:8080/api/users/${blocked[i].friend_2_id}`);
+            const userResponse = await fetch(`${API_BASE_URL}/users/${blocked[i].friend_2_id}`);
             const user = await userResponse.json();
             blocked[i].username = user.username;
           }
@@ -90,11 +93,11 @@ export default function Friends() {
 
   const sendFriendRequest = async (friendUser: string) => {
     try {
-        const userNameResponse = await fetch(`http://localhost:8080/api/users/username/${friendUser}`);
+        const userNameResponse = await fetch(`${API_BASE_URL}/users/username/${friendUser}`);
         const data = await userNameResponse.json();
         console.log(data);
         console.log('Sending:', { senderId: userId, receiverId: data.id });
-        const requestResponse = await fetch('http://localhost:8080/api/friends/request', {
+        const requestResponse = await fetch(`${API_BASE_URL}/friends/request`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ senderId: userId, receiverId: data.id })
@@ -107,7 +110,7 @@ export default function Friends() {
   const acceptFriendRequest = async (requestId: string) => {
     try {
         console.log(requestId, userId);
-        const acceptResponse = await fetch(`http://localhost:8080/api/friends/accept/${requestId}`, {
+        const acceptResponse = await fetch(`${API_BASE_URL}/friends/accept/${requestId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ requestId: requestId, accepterId: userId })
@@ -120,7 +123,7 @@ export default function Friends() {
   const rejectFriendRequest = async (requestId: string) => {
     try {
         console.log(requestId, userId);
-        const rejectResponse = await fetch(`http://localhost:8080/api/friends/reject/${requestId}`, {
+        const rejectResponse = await fetch(`${API_BASE_URL}/friends/reject/${requestId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ requestId: requestId, rejecterId: userId })
@@ -133,7 +136,7 @@ export default function Friends() {
   const removeFriend = async (friendId: string) => {
     try {
       console.log(friendId, userId);
-        const response = await fetch(`http://localhost:8080/api/friends/${friendId}`, {
+        const response = await fetch(`${API_BASE_URL}/friends/${friendId}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: userId })
@@ -145,7 +148,7 @@ export default function Friends() {
 
   const block = async (blockedId: string) => {
     try {
-      const response = await fetch('http://localhost:8080/api/friends/block', {
+      const response = await fetch(`${API_BASE_URL}/friends/block`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ blockerId: userId, blockedUserId: blockedId })
@@ -160,7 +163,7 @@ export default function Friends() {
     console.log('Unblocking:', blockedId);
     try {
       console.log(blockedId, userId);
-        const response = await fetch(`http://localhost:8080/api/friends/unblock/${blockedId}`, {
+        const response = await fetch(`${API_BASE_URL}/friends/unblock/${blockedId}`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: userId })
