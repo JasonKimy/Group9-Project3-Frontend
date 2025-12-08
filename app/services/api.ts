@@ -12,6 +12,8 @@ export interface User {
   email: string;
   createdAt: string;
   updatedAt: string;
+  fav_challenge_1?: string;
+  fav_challenge_2?: string;
 }
 
 export interface Place {
@@ -198,7 +200,9 @@ export function calculateDistance(
 export async function createUser(
   username: string,
   password: string,
-  email: string
+  email: string,
+  favChallenge1?: string,
+  favChallenge2?: string
 ): Promise<User> {
   try {
     const response = await fetch(`${API_BASE_URL}/users`, {
@@ -206,7 +210,13 @@ export async function createUser(
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username, password, email }),
+      body: JSON.stringify({ 
+        username, 
+        password, 
+        email,
+        fav_challenge_1: favChallenge1,
+        fav_challenge_2: favChallenge2
+      }),
     });
 
     if (!response.ok) {
@@ -311,4 +321,67 @@ export async function loginOAuth(email: string) : Promise<User> {
     throw new Error('Account does not exist');
   }
   return user;
+}
+
+// ============================================
+// DECK API FUNCTIONS
+// ============================================
+
+export interface Deck {
+  id: number;
+  createdAt: string;
+  userId: string;
+  category: string;
+  places: Place[];
+}
+
+/**
+ * Create a deck for a user with a specific category
+ */
+export async function createDeck(userId: string, category: string): Promise<Deck> {
+  const response = await fetch(`${API_BASE_URL}/decks?userId=${userId}&category=${category}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create deck: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Get all decks for a user
+ */
+export async function getUserDecks(userId: string): Promise<Deck[]> {
+  const response = await fetch(`${API_BASE_URL}/decks/user/${userId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch user decks: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Get a specific deck by ID
+ */
+export async function getDeckById(deckId: number): Promise<Deck> {
+  const response = await fetch(`${API_BASE_URL}/decks/${deckId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch deck: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Delete a deck
+ */
+export async function deleteDeck(deckId: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/decks/${deckId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to delete deck: ${response.status}`);
+  }
 }

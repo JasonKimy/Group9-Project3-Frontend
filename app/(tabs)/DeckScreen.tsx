@@ -2,8 +2,7 @@ import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { calculateDistance, fetchPlacesByCategory } from '../services/api';
-import { Deck } from './models';
+import { calculateDistance, getDeckById, Deck, Place } from '../services/api';
 
 const COLORS = {
   darkBlue: '#15292E',   // Background
@@ -52,11 +51,11 @@ export default function DeckScreen() {
 
     (async () => {
       try {
-        // Fetch places by category (treating category as deckId)
-        const places = await fetchPlacesByCategory(deckId);
+        // Fetch the deck from backend
+        const fetchedDeck = await getDeckById(Number(deckId));
         
         // Calculate distances if user location is available
-        const placesWithDistance = places.map((place) => {
+        const placesWithDistance = fetchedDeck.places.map((place) => {
           if (userLocation) {
             const distance = calculateDistance(
               userLocation.latitude,
@@ -76,18 +75,14 @@ export default function DeckScreen() {
 
         if (mounted) {
           setDeck({
-            id: deckId,
-            name: formatCategoryName(deckId),
-            description: `Explore ${placesWithDistance.length} amazing ${formatCategoryName(deckId).toLowerCase()} locations`,
-            category: deckId,
+            ...fetchedDeck,
             places: placesWithDistance,
-            completedCount: 0,
           });
         }
       } catch (err) {
         console.error('Error fetching deck:', err);
         if (mounted) {
-          Alert.alert('Error', 'Failed to load places. Please try again.');
+          Alert.alert('Error', 'Failed to load deck. Please try again.');
         }
       } finally {
         if (mounted) setLoading(false);
@@ -130,10 +125,9 @@ export default function DeckScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.header}>{deck.name}</Text>
-        <Text style={styles.description}>{deck.description}</Text>
-        <Text style={styles.progressText}>
-          {deck.completedCount} / {deck.places.length} completed
+        <Text style={styles.header}>{formatCategoryName(deck.category)}</Text>
+        <Text style={styles.description}>
+          Explore {deck.places.length} amazing {formatCategoryName(deck.category).toLowerCase()} locations
         </Text>
       </View>
       
