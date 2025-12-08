@@ -2,7 +2,10 @@ import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { calculateDistance, getDeckById, Deck, Place } from '../services/api';
+
+const KM_TO_MILES = 0.621371; // Conversion factor
 
 const COLORS = {
   darkBlue: '#15292E',   // Background
@@ -115,7 +118,7 @@ export default function DeckScreen() {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No places found in this deck.</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(tabs)/HomeScreen')}>
           <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -125,6 +128,10 @@ export default function DeckScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
+        <TouchableOpacity style={styles.backButtonContainer} onPress={() => router.push('/(tabs)/HomeScreen')}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.mint} />
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
         <Text style={styles.header}>{formatCategoryName(deck.category)}</Text>
         <Text style={styles.description}>
           Explore {deck.places.length} amazing {formatCategoryName(deck.category).toLowerCase()} locations
@@ -147,7 +154,7 @@ export default function DeckScreen() {
               </Text>
               {item.distance !== undefined && (
                 <Text style={styles.distanceText}>
-                  📍 {item.distance.toFixed(1)} km away
+                  📍 {(item.distance * KM_TO_MILES).toFixed(2)} miles away
                 </Text>
               )}
             </View>
@@ -199,16 +206,23 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
   },
-  backButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
   headerContainer: {
     backgroundColor: COLORS.tealDark,
     padding: 16,
+    paddingTop: 50,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+  },
+  backButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  backButtonText: {
+    fontSize: 18,
+    color: COLORS.mint,
+    marginLeft: 8,
+    fontWeight: '600',
   },
   header: { 
     fontSize: 28, 

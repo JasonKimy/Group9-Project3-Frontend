@@ -1,12 +1,13 @@
-import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, Image, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { calculateDistance, fetchPlaceById } from '../services/api';
 import { Place } from './models';
 
 const CHECK_IN_RADIUS_KM = 0.5; // 500 meters
+const KM_TO_MILES = 0.621371; // Conversion factor
 
 const COLORS = {
   darkBlue: '#15292E',
@@ -23,7 +24,6 @@ export default function CheckInScreen() {
   const { placeId } = useLocalSearchParams() as { placeId: string };
   const router = useRouter();
   const [place, setPlace] = useState<Place | null>(null);
-  const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -75,31 +75,19 @@ export default function CheckInScreen() {
     if (!userLocation || !place) return;
     const dist = calculateDistance(userLocation.latitude, userLocation.longitude, place.lat, place.lon);
     if (dist > CHECK_IN_RADIUS_KM) {
-      Alert.alert('Too Far Away', `You must be within ${CHECK_IN_RADIUS_KM * 1000}m to check in. You are ${(dist*1000).toFixed(0)}m away.`);
+      const distMiles = (dist * KM_TO_MILES).toFixed(2);
+      const radiusMiles = (CHECK_IN_RADIUS_KM * KM_TO_MILES).toFixed(2);
+      Alert.alert('Too Far Away', `You must be within ${radiusMiles} miles to check in. You are ${distMiles} miles away.`);
       return;
     }
     setCheckingIn(true);
     try {
-      console.log('Check-in successful:', { placeId: place.id, latitude: userLocation.latitude, longitude: userLocation.longitude, photoUri: photo });
+      console.log('Check-in successful:', { placeId: place.id, latitude: userLocation.latitude, longitude: userLocation.longitude });
       Alert.alert('✓ Check-In Successful!', `You've checked in at ${place.name}!`, [{ text: 'OK', onPress: () => router.back() }]);
     } catch (err) {
       console.error(err);
       Alert.alert('Error', 'Failed to complete check-in.');
     } finally { setCheckingIn(false); }
-  };
-
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') return Alert.alert('Permission Required', 'Camera access is required.');
-    const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4,3], quality: 0.8 });
-    if (!result.canceled && result.assets?.length) setPhoto(result.assets[0].uri);
-  };
-
-  const pickFromGallery = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') return Alert.alert('Permission Required', 'Photo library access is required.');
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [4,3], quality: 0.8 });
-    if (!result.canceled && result.assets?.length) setPhoto(result.assets[0].uri);
   };
 
   if (loading) {
@@ -123,6 +111,11 @@ export default function CheckInScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <TouchableOpacity style={styles.backButtonContainer} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={24} color={COLORS.mint} />
+        <Text style={styles.backButtonText}>Back</Text>
+      </TouchableOpacity>
+      
       <View style={styles.card}>
         <Text style={styles.title}>{place.name}</Text>
         <Text style={styles.category}>{place.category.replace('_',' ').toUpperCase()} • {place.city}</Text>
@@ -131,27 +124,9 @@ export default function CheckInScreen() {
           <View style={styles.distanceContainer}>
             <Text style={styles.distanceLabel}>Distance from you:</Text>
             <Text style={[styles.distanceValue, !isWithinRadius && styles.distanceFar]}>
-              {(distance*1000).toFixed(0)}m away
+              {(distance * KM_TO_MILES).toFixed(2)} miles away
             </Text>
-            {!isWithinRadius && <Text style={styles.distanceWarning}>⚠️ Within {CHECK_IN_RADIUS_KM*1000}m to check in</Text>}
-          </View>
-        )}
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Add a Photo (Optional)</Text>
-        {photo ? (
-          <>
-            <Image source={{ uri: photo }} style={styles.image} />
-            <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.photoButton} onPress={pickImage}><Text style={styles.buttonText}>Retake</Text></TouchableOpacity>
-              <TouchableOpacity style={[styles.photoButton, styles.removeButton]} onPress={() => setPhoto(null)}><Text style={styles.buttonText}>Remove</Text></TouchableOpacity>
-            </View>
-          </>
-        ) : (
-          <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.photoButton} onPress={pickImage}><Text style={styles.buttonText}>📷 Take Photo</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.photoButton} onPress={pickFromGallery}><Text style={styles.buttonText}>🖼️ Choose from Gallery</Text></TouchableOpacity>
+            {!isWithinRadius && <Text style={styles.distanceWarning}>⚠️ Within {(CHECK_IN_RADIUS_KM * KM_TO_MILES).toFixed(2)} miles to check in</Text>}
           </View>
         )}
       </View>
@@ -182,6 +157,18 @@ export default function CheckInScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.darkBlue },
   contentContainer: { padding: 16 },
+  backButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingVertical: 8,
+  },
+  backButtonText: {
+    fontSize: 18,
+    color: COLORS.mint,
+    marginLeft: 8,
+    fontWeight: '600',
+  },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.darkBlue },
   loadingText: { marginTop: 12, fontSize: 16, color: COLORS.white },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
@@ -195,12 +182,6 @@ const styles = StyleSheet.create({
   distanceValue: { fontSize: 22, fontWeight: 'bold', color: COLORS.success },
   distanceFar: { color: COLORS.warning },
   distanceWarning: { fontSize: 13, color: COLORS.warning, marginTop: 6, fontStyle: 'italic' },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12, color: COLORS.mint },
-  image: { width: '100%', height: 250, borderRadius: 8, marginBottom: 12 },
-  buttonRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
-  photoButton: { flex: 1, padding: 12, borderRadius: 10, backgroundColor: COLORS.mint, alignItems: 'center', marginHorizontal: 2 },
-  removeButton: { backgroundColor: COLORS.error },
-  buttonText: { color: COLORS.white, fontWeight: 'bold' },
   checkInButton: { padding: 16, borderRadius: 10, backgroundColor: COLORS.mint, alignItems: 'center' },
   disabledButton: { backgroundColor: COLORS.warning },
   checkInButtonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 16 },
