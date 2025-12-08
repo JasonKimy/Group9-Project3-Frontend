@@ -385,3 +385,45 @@ export async function deleteDeck(deckId: number): Promise<void> {
     throw new Error(`Failed to delete deck: ${response.status}`);
   }
 }
+
+// ============= Check-in Functions =============
+
+export interface CheckIn {
+  id: string;
+  userId: string;
+  placeId: string;
+  timestamp: string;
+  photoUri?: string;
+}
+
+export interface CheckInWithPlace extends CheckIn {
+  place: Place;
+}
+
+/**
+ * Get all check-ins for a user
+ */
+export async function getUserCheckIns(userId: string): Promise<CheckIn[]> {
+  const response = await fetch(`${API_BASE_URL}/checkins/user/${userId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch user check-ins: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Create a new check-in
+ */
+export async function createCheckIn(userId: string, placeId: string, photoUri?: string): Promise<CheckIn> {
+  const response = await fetch(`${API_BASE_URL}/checkins`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userId, placeId, photoUri }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to create check-in: ${response.status}`);
+  }
+  return response.json();
+}
