@@ -32,19 +32,19 @@ export default function Leaderboard() {
         setCurrentUser(user);
         
         // Fetch leaderboards and our ranks on each
-        const globalResponse = await fetch('http://localhost:8080/api/users/leaderboard/global?limit=5');
+        const globalResponse = await fetch('https://wander-api-196ebd783842.herokuapp.com/api/users/leaderboard/global?limit=5');
         const globalData = await globalResponse.json();
         setGlobalLeaderboard(globalData);
         
-        const friendsResponse = await fetch(`http://localhost:8080/api/users/leaderboard/friends/${user.id}?limit=5`);
+        const friendsResponse = await fetch(`https://wander-api-196ebd783842.herokuapp.com/api/users/leaderboard/friends/${user.id}?limit=5`);
         const friendsData = await friendsResponse.json();
         setFriendsLeaderboard(friendsData);
         
-        const globalRankResponse = await fetch(`http://localhost:8080/api/users/leaderboard/global/rank/${user.id}`);
+        const globalRankResponse = await fetch(`https://wander-api-196ebd783842.herokuapp.com/api/users/leaderboard/global/rank/${user.id}`);
         const globalRankData = await globalRankResponse.json();
         setGlobalRank(globalRankData);
         
-        const friendsRankResponse = await fetch(`http://localhost:8080/api/users/leaderboard/friends/rank/${user.id}`);
+        const friendsRankResponse = await fetch(`https://wander-api-196ebd783842.herokuapp.com/api/users/leaderboard/friends/rank/${user.id}`);
         const friendsRankData = await friendsRankResponse.json();
         setFriendsRank(friendsRankData);
       } catch (err) {
