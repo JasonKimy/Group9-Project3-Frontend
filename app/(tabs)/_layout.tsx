@@ -37,12 +37,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="VisitedPlacesScreen"
+        options={{
+          title: 'Visits',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="checkmark-circle" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="DeckScreen"
         options={{
-          title: 'Decks',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="albums" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
