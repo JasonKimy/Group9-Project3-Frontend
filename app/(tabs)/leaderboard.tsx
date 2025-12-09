@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface User {
   id: string;
@@ -62,8 +63,12 @@ export default function Leaderboard() {
     return leaderboard.some(user => user.id === userId);
   };
 
+  if (loading) {
+    return <View style={styles.loading}><Text style={styles.loadingText}>Loading leaderboards...</Text></View>;
+  }
+
   if (error) {
-    return <div style={styles.error}>Error: {error}</div>;
+    return <View style={styles.error}><Text style={styles.errorText}>Error: {error}</Text></View>;
   }
 
   const LoadingOverlay = () => (
@@ -119,176 +124,185 @@ export default function Leaderboard() {
   const showFriendsUser = currentUser && !isUserInLeaderboard(friendsLeaderboard, currentUser.id);
 
   return (
-    <>
-      {loading && <LoadingOverlay />}
-      <div style={styles.container}>
-      <div style={styles.scrollContainer}>
-        <h1 style={styles.header}>Leaderboards</h1>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollContainer}>
+        <Text style={styles.header}>Leaderboards</Text>
 
         {/* GLOBAL LEADERBOARD */}
-        <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Global Leaderboard</h2>
+        <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Global Leaderboard</Text>
 
-        <ol style={styles.list}>
+        <View style={styles.list}>
           {globalLeaderboard.map((user, index) => (
-            <li key={user.id} style={styles.listItem}>
-              <span style={styles.rankBadge}>{index + 1}</span>
-              <span style={styles.username}>{user.username}</span>
-              <span style={styles.points}>{user.points} pts</span>
-            </li>
+            <View key={user.id} style={styles.listItem}>
+              <Text style={styles.rankBadge}>{index + 1}</Text>
+              <Text style={styles.username}>{user.username}</Text>
+              <Text style={styles.points}>{user.points} pts</Text>
+            </View>
           ))}
-        </ol>
+        </View>
 
         {/* Player Rank Below List */}
         {showGlobalUser && currentUser && (
-          <div style={styles.currentUser}>
-            <p style={styles.ellipsis}>•••</p>
-            <p style={styles.currentUserText}>
-              {globalRank}. {currentUser.username} — {currentUser.points} pts
-            </p>
-          </div>
+          <View style={styles.currentUser}>
+            <Text style={styles.ellipsis}>•••</Text>
+            <Text style={styles.currentUserText}>
+              {globalRank > 5 ? globalRank : 6}. {currentUser.username} — {currentUser.points} pts
+            </Text>
+          </View>
         )}
-      </div>
+      </View>
 
       {/* FRIENDS LEADERBOARD */}
-      <div style={styles.section}>
+      <View style={styles.section}>
         {friendsLeaderboard.length === 0 ? (
-          <p style={styles.emptyText}>No friends leaderboard available</p>
+          <Text style={styles.emptyText}>No friends leaderboard available</Text>
         ) : (
           <>
-            <h2 style={styles.sectionTitle}>Friends Leaderboard</h2>
+            <Text style={styles.sectionTitle}>Friends Leaderboard</Text>
 
-            <ol style={styles.list}>
+            <View style={styles.list}>
               {friendsLeaderboard.map((user, index) => (
-                <li key={user.id} style={styles.listItem}>
-                  <span style={styles.rankBadge}>{index + 1}</span>
-                  <span style={styles.username}>{user.username}</span>
-                  <span style={styles.points}>{user.points} pts</span>
-                </li>
+                <View key={user.id} style={styles.listItem}>
+                  <Text style={styles.rankBadge}>{index + 1}</Text>
+                  <Text style={styles.username}>{user.username}</Text>
+                  <Text style={styles.points}>{user.points} pts</Text>
+                </View>
               ))}
-            </ol>
+            </View>
 
             {showFriendsUser && currentUser && (
-              <div style={styles.currentUser}>
-                <p style={styles.ellipsis}>•••</p>
-                <p style={styles.currentUserText}>
-                  {friendsRank}. {currentUser.username} —{' '}
+              <View style={styles.currentUser}>
+                <Text style={styles.ellipsis}>•••</Text>
+                <Text style={styles.currentUserText}>
+                  {friendsRank > 5 ? friendsRank : 6}. {currentUser.username} —{' '}
                   {currentUser.points} pts
-                </p>
-              </div>
+                </Text>
+              </View>
             )}
           </>
         )}
-      </div>
-      </div>
-    </div>
-    </>
+      </View>
+      </ScrollView>
+    </View>
   );
 }
 
-const styles: { [key: string]: React.CSSProperties } = {
+const styles = StyleSheet.create({
   container: {
-    height: '100vh',
+    flex: 1,
     backgroundColor: '#15292E',
-    color: '#FFFFFF',
-    fontFamily: 'Inter, Arial, sans-serif',
-    overflow: 'hidden',
   },
 
   scrollContainer: {
-    height: '100%',
-    overflowY: 'auto',
-    padding: '30px',
+    flex: 1,
+    padding: 30,
   },
 
   header: {
-    fontSize: '36px',
+    fontSize: 36,
     fontWeight: '800',
-    marginBottom: '32px',
+    marginBottom: 32,
     color: '#7AD7C3',
     textAlign: 'center',
-    letterSpacing: '1.5px',
-    textShadow: '0 0 14px rgba(122, 215, 195, 0.35)',
+    letterSpacing: 1.5,
+    textShadowColor: 'rgba(122, 215, 195, 0.35)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 14,
   },
 
   section: {
-    marginBottom: '42px',
+    marginBottom: 42,
     backgroundColor: '#1D3A40',
-    padding: '22px',
-    borderRadius: '18px',
-    border: '1px solid #26494F',
-    boxShadow: '0 5px 14px rgba(0,0,0,0.35)',
+    padding: 22,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#26494F',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    elevation: 14,
   },
 
   sectionTitle: {
-    fontSize: '24px',
+    fontSize: 24,
     fontWeight: '700',
-    marginBottom: '16px',
+    marginBottom: 16,
     color: '#7AD7C3',
-    letterSpacing: '1px',
+    letterSpacing: 1,
   },
 
   list: {
     margin: 0,
     padding: 0,
-    listStyle: 'none',
   },
 
   listItem: {
     backgroundColor: '#0E2226',
-    marginBottom: '12px',
-    padding: '16px',
-    borderRadius: '12px',
-    display: 'flex',
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: '12px',
-    border: '1px solid #26494F',
-    boxShadow: '0 3px 8px rgba(0, 0, 0, 0.35)',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#26494F',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 8,
   },
 
   rankBadge: {
     backgroundColor: '#7AD7C3',
     color: '#0E2226',
     fontWeight: '700',
-    padding: '6px 12px',
-    borderRadius: '10px',
-    minWidth: '34px',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    minWidth: 34,
     textAlign: 'center',
-    fontSize: '16px',
+    fontSize: 16,
   },
 
   username: {
     flex: 1,
-    fontSize: '18px',
+    fontSize: 18,
     fontWeight: '500',
     color: '#FFFFFF',
   },
 
   points: {
     fontWeight: '700',
-    fontSize: '16px',
+    fontSize: 16,
     color: '#7AD7C3',
   },
 
   currentUser: {
-    marginTop: '14px',
-    padding: '16px',
+    marginTop: 14,
+    padding: 16,
     backgroundColor: '#1DA27E',
-    borderRadius: '12px',
-    textAlign: 'center',
-    boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 14,
   },
 
   currentUserText: {
     fontWeight: '700',
-    fontSize: '17px',
+    fontSize: 17,
     margin: 0,
     color: '#0E2226',
   },
 
   ellipsis: {
     margin: 0,
-    fontSize: '22px',
+    fontSize: 22,
     color: '#FFFFFF',
     opacity: 0.6,
   },
@@ -297,20 +311,30 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#A0C4C4',
     fontStyle: 'italic',
     textAlign: 'center',
-    fontSize: '16px',
+    fontSize: 16,
   },
 
   loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 40,
+  },
+
+  loadingText: {
     color: 'white',
-    fontSize: '20px',
-    textAlign: 'center',
-    marginTop: '40px',
+    fontSize: 20,
   },
 
   error: {
-    color: '#FF6B6B',
-    fontSize: '20px',
-    textAlign: 'center',
-    marginTop: '40px',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 40,
   },
-};
+
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 20,
+  },
+});
