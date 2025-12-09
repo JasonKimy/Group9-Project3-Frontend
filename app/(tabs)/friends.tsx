@@ -48,7 +48,7 @@ export default function Friends() {
         const response2 = await fetch(`${API_BASE_URL}/friends/sent/${userId}`);
         const response3 = await fetch(`${API_BASE_URL}/friends/incoming/${userId}`);
         const response4 = await fetch(`${API_BASE_URL}/friends/blocked/${userId}`);
-
+        
         const friends = [...await response1.json()];
         const pending = [...await response2.json()];
         const incoming = [...await response3.json()];
@@ -59,13 +59,13 @@ export default function Friends() {
           const user = await userResponse.json();
           friends[i].username = user.username;
         }
-
+        
         for (let i = 0; i < pending.length; i++) {
           const userResponse = await fetch(`${API_BASE_URL}/users/${pending[i].friend_2_id}`);
           const user = await userResponse.json();
           pending[i].username = user.username;
         }
-
+        
         for (let i = 0; i < incoming.length; i++) {
           const userResponse = await fetch(`${API_BASE_URL}/users/${incoming[i].friend_1_id}`);
           const user = await userResponse.json();
@@ -77,7 +77,7 @@ export default function Friends() {
           const user = await userResponse.json();
           blocked[i].username = user.username;
         }
-
+        
         setFriends(friends);
         setPending(pending);
         setIncoming(incoming);
@@ -88,8 +88,9 @@ export default function Friends() {
         setLoading(false);
       }
     };
-    fetchFriends();
-  }, [userId]);
+    useEffect(() => {
+      fetchFriends();
+    }, [userId]);
 
   const sendFriendRequest = async (friendUser: string) => {
     try {
@@ -111,12 +112,21 @@ export default function Friends() {
     try {
         console.log(requestId, userId);
         const acceptResponse = await fetch(`${API_BASE_URL}/friends/accept/${requestId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId: requestId, accepterId: userId })
-      });
-    } catch {
-      setError('An error occurred while accepting friend request');
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accepterId: userId })
+          });
+        
+        if (acceptResponse.ok) {
+          // Refresh the friends list after accepting
+          await fetchFriends();
+        } else {
+          const errorText = await acceptResponse.text();
+          setError(`Failed to accept friend request: ${errorText}`);
+        }
+    } catch (err) {
+        setError('An error occurred while accepting friend request');
+        console.error('Accept friend error:', err);
     }
   };
 
@@ -124,12 +134,21 @@ export default function Friends() {
     try {
         console.log(requestId, userId);
         const rejectResponse = await fetch(`${API_BASE_URL}/friends/reject/${requestId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId: requestId, rejecterId: userId })
-      });
-    } catch {
-      setError('An error occurred while rejecting friend request');
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rejecterId: userId })
+          });
+        
+        if (rejectResponse.ok) {
+          // Refresh the friends list after rejecting
+          await fetchFriends();
+        } else {
+          const errorText = await rejectResponse.text();
+          setError(`Failed to reject friend request: ${errorText}`);
+        }
+    } catch (err) {
+        setError('An error occurred while rejecting friend request');
+        console.error('Reject friend error:', err);
     }
   };
 
@@ -137,12 +156,21 @@ export default function Friends() {
     try {
       console.log(friendId, userId);
         const response = await fetch(`${API_BASE_URL}/friends/${friendId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userId })
-      });
-    } catch {
-      setError('An error occurred while removing friend');
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userId })
+        });
+        
+        if (response.ok) {
+          // Refresh the friends list after removing
+          await fetchFriends();
+        } else {
+          const errorText = await response.text();
+          setError(`Failed to remove friend: ${errorText}`);
+        }
+    } catch (err) {
+        setError('An error occurred while removing friend');
+        console.error('Remove friend error:', err);
     }
   };
 
@@ -153,8 +181,17 @@ export default function Friends() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ blockerId: userId, blockedUserId: blockedId })
       });
-    } catch {
+      
+      if (response.ok) {
+        // Refresh the friends list after blocking
+        await fetchFriends();
+      } else {
+        const errorText = await response.text();
+        setError(`Failed to block user: ${errorText}`);
+      }
+    } catch (err) {
       setError('An error occurred while blocking user');
+      console.error('Block user error:', err);
     }
   };
 
@@ -164,12 +201,21 @@ console.log('User ID:', userId);
     try {
       console.log(blockedId, userId);
         const response = await fetch(`${API_BASE_URL}/friends/unblock/${blockedId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userId })
-      });
-    } catch {
-      setError('An error occurred while removing friend');
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userId })
+        });
+        
+        if (response.ok) {
+          // Refresh the friends list after unblocking
+          await fetchFriends();
+        } else {
+          const errorText = await response.text();
+          setError(`Failed to unblock user: ${errorText}`);
+        }
+    } catch (err) {
+        setError('An error occurred while unblocking user');
+        console.error('Unblock user error:', err);
     }
   };
 

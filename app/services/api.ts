@@ -14,6 +14,7 @@ export interface User {
   updatedAt: string;
   fav_challenge_1?: string;
   fav_challenge_2?: string;
+  avatar_url?: string;
 }
 
 export interface Place {
@@ -389,6 +390,47 @@ export async function deleteDeck(deckId: number): Promise<void> {
   }
 }
 
+/**
+ * Update user decks when favorite challenges change
+ * Replaces all 3 decks with 2 new favorite challenge decks and 1 new random deck
+ */
+export async function updateUserDecks(
+  userId: string, 
+  oldFavChallenge1: string, 
+  oldFavChallenge2: string,
+  newFavChallenge1: string, 
+  newFavChallenge2: string
+): Promise<void> {
+  try {
+    // Get all user's current decks
+    const currentDecks = await getUserDecks(userId);
+    
+    // Delete ALL existing decks (all 3)
+    await Promise.all(currentDecks.map(deck => deleteDeck(deck.id)));
+    
+    // Get all available categories for random selection
+    const allCategories = await fetchCategories();
+    const nonFavoriteCategories = allCategories.filter(
+      (cat) => cat !== newFavChallenge1 && cat !== newFavChallenge2
+    );
+    
+    // Select a new random category
+    const randomCategory = nonFavoriteCategories.length > 0
+      ? nonFavoriteCategories[Math.floor(Math.random() * nonFavoriteCategories.length)]
+      : allCategories[0];
+    
+    // Create 3 new decks: 2 favorite challenges + 1 random
+    await Promise.all([
+      createDeck(userId, newFavChallenge1),
+      createDeck(userId, newFavChallenge2),
+      createDeck(userId, randomCategory),
+    ]);
+  } catch (error) {
+    console.error('Error updating user decks:', error);
+    throw error;
+  }
+}
+
 // ============= Check-in Functions =============
 
 export interface CheckIn {
@@ -429,4 +471,119 @@ export async function createCheckIn(userId: string, placeId: string, photoUri?: 
     throw new Error(`Failed to create check-in: ${response.status}`);
   }
   return response.json();
+}
+
+// ============= User Update Functions =============
+
+/**
+ * Update user's favorite challenges
+ */
+export async function updateUserFavoriteChallenges(
+  userId: string,
+  favChallenge1: string,
+  favChallenge2: string
+): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/users/${userId}/favorites`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      favChallenge1: favChallenge1,
+      favChallenge2: favChallenge2,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to update favorite challenges: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Update user's avatar URL
+ */
+export async function updateUserAvatar(userId: string, avatarUrl: string): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/users/${userId}/avatar`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ avatarUrl }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to update avatar: ${response.status}`);
+  }
+  return response.json();
+}
+
+// ============= Friend Functions =============
+
+export interface Friend {
+  id: string;
+  username: string;
+  friend_1_id: string;
+  friend_2_id: string;
+  status: string;
+  avatar_url?: string;
+}
+
+export interface FriendWithDecks extends Friend {
+  decks: Deck[];
+}
+
+/**
+ * Get all friends for a user
+ */
+export async function getUserFriends(userId: string): Promise<Friend[]> {
+  const response = await fetch(`${API_BASE_URL}/friends/${userId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch friends: ${response.status}`);
+  }
+  const friends = await response.json();
+  
+  // Fetch user details for each friend to get username and avatar
+  const friendsWithDetails = await Promise.all(
+    friends.map(async (friend: Friend) => {
+      const friendUserId = friend.friend_2_id;
+      const userResponse = await fetch(`${API_BASE_URL}/users/${friendUserId}`);
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        return {
+          ...friend,
+          username: userData.username,
+          avatar_url: userData.avatar_url,
+        };
+      }
+      return friend;
+    })
+  );
+  
+  return friendsWithDetails;
+}
+
+/**
+ * Get decks for a specific friend
+ */
+export async function getFriendDecks(friendUserId: string): Promise<Deck[]> {
+  return getUserDecks(friendUserId);
+}
+
+/**
+ * Get all friends with their decks
+ */
+export async function getFriendsWithDecks(userId: string): Promise<FriendWithDecks[]> {
+  const friends = await getUserFriends(userId);
+  
+  const friendsWithDecks = await Promise.all(
+    friends.map(async (friend) => {
+      const friendUserId = friend.friend_2_id;
+      const decks = await getFriendDecks(friendUserId);
+      return {
+        ...friend,
+        decks,
+      };
+    })
+  );
+  
+  return friendsWithDecks;
 }

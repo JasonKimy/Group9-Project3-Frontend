@@ -16,7 +16,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { createDeck, createUser, fetchCategories, loginOAuth, loginUser } from './services/api';
+import { loginOAuth, loginUser } from './services/api';
 
 // Web-compatible alert function
 const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -65,28 +65,9 @@ export default function AuthScreen() {
 
  const router = useRouter();
 
-  // Track whether user is on login or create account mode
-  const [isLogin, setIsLogin] = useState(true);
-
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [favChallenge1, setFavChallenge1] = useState('');
-  const [favChallenge2, setFavChallenge2] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Available categories for challenges
-  const availableCategories = [
-    { label: 'Coffee Shop', value: 'coffee_shop' },
-    { label: 'Restaurant', value: 'restaurant' },
-    { label: 'Park', value: 'park' },
-    { label: 'Beach', value: 'beach' },
-    { label: 'Museum', value: 'museum' },
-    { label: 'Gym', value: 'gym' },
-    { label: 'Bar', value: 'bar' },
-    { label: 'Cafe', value: 'cafe' },
-  ];
 
  const githubDiscovery = {
    authorizationEndpoint: 'https://github.com/login/oauth/authorize',
@@ -279,84 +260,7 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
     }
   };
 
-  const handleCreateAccount = async () => {
-    if (!username || !email || !password || !confirmPassword) {
-      showAlert('Error', 'Please fill all fields');
-      return;
-    }
 
-    if (password !== confirmPassword) {
-      showAlert('Error', 'Passwords do not match');
-      return;
-    }
-
-    // Basic email validation - uses regex java object
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      showAlert('Error', 'Please enter a valid email address');
-      return;
-    }
-
-    if (password.length < 6) {
-      showAlert('Error', 'Password must be at least 6 characters long');
-      return;
-    }
-
-    if (!favChallenge1 || !favChallenge2) {
-      showAlert('Error', 'Please select both favorite challenges');
-      return;
-    }
-
-    if (favChallenge1 === favChallenge2) {
-      showAlert('Error', 'Please select two different challenges');
-      return;
-    }
-
-    setLoading(true);
-    
-    try {
-      // Create the user account
-      const user = await createUser(username, password, email, favChallenge1, favChallenge2);
-      
-      // Get all available categories to select a random one
-      const allCategories = await fetchCategories();
-      const nonFavoriteCategories = allCategories.filter(
-        (cat) => cat !== favChallenge1 && cat !== favChallenge2
-      );
-      
-      // Select a random category
-      const randomCategory = nonFavoriteCategories.length > 0
-        ? nonFavoriteCategories[Math.floor(Math.random() * nonFavoriteCategories.length)]
-        : allCategories[0]; // Fallback to first category if no non-favorite exists
-
-      // Create 3 decks: 2 favorite challenges + 1 random
-      await Promise.all([
-        createDeck(user.id, favChallenge1),
-        createDeck(user.id, favChallenge2),
-        createDeck(user.id, randomCategory),
-      ]);
-      
-      showAlert('Success', 'Account created successfully! Your challenges are ready. Please log in.', () => {
-        setIsLogin(true);
-        setPassword('');
-        setConfirmPassword('');
-        setFavChallenge1('');
-        setFavChallenge2('');
-      });
-    } catch (error) {
-      showAlert('Registration Failed', error instanceof Error ? error.message : 'Failed to create account');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (isLogin) {
-      handleLogin();
-    } else {
-      handleCreateAccount();
-    }
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -365,23 +269,11 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>{isLogin ? 'Login' : 'Create Account'}</Text>
-
-          {!isLogin && (
-            <TextInput
-              style={styles.input}
-              placeholder="Username"
-              placeholderTextColor={COLORS.teal}
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              editable={!loading}
-            />
-          )}
+          <Text style={styles.title}>Login</Text>
 
           <TextInput
             style={styles.input}
-            placeholder={isLogin ? "Username or Email" : "Email"}
+            placeholder="Username or Email"
             placeholderTextColor={COLORS.teal}
             value={email}
             onChangeText={setEmail}
@@ -400,99 +292,25 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
             editable={!loading}
           />
 
-          {!isLogin && (
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm Password"
-              placeholderTextColor={COLORS.teal}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              editable={!loading}
-            />
-          )}
-
-          {!isLogin && (
-            <View style={styles.challengeContainer}>
-              <Text style={styles.challengeLabel}>Favorite Challenge 1</Text>
-              <View style={styles.categoryGrid}>
-                {availableCategories.map((cat) => (
-                  <TouchableOpacity
-                    key={`fav1-${cat.value}`}
-                    style={[
-                      styles.categoryButton,
-                      favChallenge1 === cat.value && styles.categoryButtonSelected
-                    ]}
-                    onPress={() => setFavChallenge1(cat.value)}
-                    disabled={loading}
-                  >
-                    <Text style={[
-                      styles.categoryButtonText,
-                      favChallenge1 === cat.value && styles.categoryButtonTextSelected
-                    ]}>
-                      {cat.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {!isLogin && (
-            <View style={styles.challengeContainer}>
-              <Text style={styles.challengeLabel}>Favorite Challenge 2</Text>
-              <View style={styles.categoryGrid}>
-                {availableCategories.map((cat) => (
-                  <TouchableOpacity
-                    key={`fav2-${cat.value}`}
-                    style={[
-                      styles.categoryButton,
-                      favChallenge2 === cat.value && styles.categoryButtonSelected
-                    ]}
-                    onPress={() => setFavChallenge2(cat.value)}
-                    disabled={loading}
-                  >
-                    <Text style={[
-                      styles.categoryButtonText,
-                      favChallenge2 === cat.value && styles.categoryButtonTextSelected
-                    ]}>
-                      {cat.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          )}
-
           <TouchableOpacity 
             style={[styles.button, loading && styles.buttonDisabled]} 
-            onPress={handleSubmit} 
+            onPress={handleLogin} 
             disabled={loading}
-            testID={isLogin ? "login-button" : "create-button"}
+            testID="login-button"
           >
             {loading ? (
               <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={styles.buttonText}>{isLogin ? 'Login' : 'Create Account'}</Text>
+              <Text style={styles.buttonText}>Login</Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity 
-            onPress={() => {
-              setIsLogin(!isLogin);
-              setUsername('');
-              setEmail('');
-              setPassword('');
-              setConfirmPassword('');
-              setFavChallenge1('');
-              setFavChallenge2('');
-            }}
+            onPress={() => router.push('./SignUpScreen')}
             disabled={loading}
           >
             <Text style={styles.toggleText}>
-              {isLogin
-                ? "Don't have an account? Create one"
-                : 'Already have an account? Login'}
+              Don't have an account? Create one
             </Text>
           </TouchableOpacity>
         </ScrollView>
