@@ -515,3 +515,75 @@ export async function updateUserAvatar(userId: string, avatarUrl: string): Promi
   }
   return response.json();
 }
+
+// ============= Friend Functions =============
+
+export interface Friend {
+  id: string;
+  username: string;
+  friend_1_id: string;
+  friend_2_id: string;
+  status: string;
+  avatar_url?: string;
+}
+
+export interface FriendWithDecks extends Friend {
+  decks: Deck[];
+}
+
+/**
+ * Get all friends for a user
+ */
+export async function getUserFriends(userId: string): Promise<Friend[]> {
+  const response = await fetch(`${API_BASE_URL}/friends/${userId}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch friends: ${response.status}`);
+  }
+  const friends = await response.json();
+  
+  // Fetch user details for each friend to get username and avatar
+  const friendsWithDetails = await Promise.all(
+    friends.map(async (friend: Friend) => {
+      const friendUserId = friend.friend_2_id;
+      const userResponse = await fetch(`${API_BASE_URL}/users/${friendUserId}`);
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        return {
+          ...friend,
+          username: userData.username,
+          avatar_url: userData.avatar_url,
+        };
+      }
+      return friend;
+    })
+  );
+  
+  return friendsWithDetails;
+}
+
+/**
+ * Get decks for a specific friend
+ */
+export async function getFriendDecks(friendUserId: string): Promise<Deck[]> {
+  return getUserDecks(friendUserId);
+}
+
+/**
+ * Get all friends with their decks
+ */
+export async function getFriendsWithDecks(userId: string): Promise<FriendWithDecks[]> {
+  const friends = await getUserFriends(userId);
+  
+  const friendsWithDecks = await Promise.all(
+    friends.map(async (friend) => {
+      const friendUserId = friend.friend_2_id;
+      const decks = await getFriendDecks(friendUserId);
+      return {
+        ...friend,
+        decks,
+      };
+    })
+  );
+  
+  return friendsWithDecks;
+}
