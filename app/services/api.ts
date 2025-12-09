@@ -14,6 +14,7 @@ export interface User {
   updatedAt: string;
   fav_challenge_1?: string;
   fav_challenge_2?: string;
+  avatar_url?: string;
 }
 
 export interface Place {
@@ -427,6 +428,49 @@ export async function createCheckIn(userId: string, placeId: string, photoUri?: 
   });
   if (!response.ok) {
     throw new Error(`Failed to create check-in: ${response.status}`);
+  }
+  return response.json();
+}
+
+// ============= User Update Functions =============
+
+/**
+ * Update user's favorite challenges
+ */
+export async function updateUserFavoriteChallenges(
+  userId: string,
+  favChallenge1: string,
+  favChallenge2: string
+): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/users/${userId}/favorites`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      fav_challenge_1: favChallenge1,
+      fav_challenge_2: favChallenge2,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to update favorite challenges: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Update user's avatar URL
+ */
+export async function updateUserAvatar(userId: string, avatarUrl: string): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/users/${userId}/avatar`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ avatarUrl }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to update avatar: ${response.status}`);
   }
   return response.json();
 }

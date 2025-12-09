@@ -131,13 +131,10 @@ export default function SignUpScreen() {
   // Available categories for challenges
   const availableCategories = [
     { label: 'Coffee Shop', value: 'coffee_shop' },
-    { label: 'Restaurant', value: 'restaurant' },
+    { label: 'Gym', value: 'gym' },
     { label: 'Park', value: 'park' },
     { label: 'Beach', value: 'beach' },
-    { label: 'Museum', value: 'museum' },
-    { label: 'Gym', value: 'gym' },
-    { label: 'Bar', value: 'bar' },
-    { label: 'Cafe', value: 'cafe' },
+    { label: 'Trail', value: 'trail' },
   ];
 
   const handleCategorySelect = (category: CategoryName) => {
