@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { calculateDistance, fetchPlaceById, createCheckIn, User } from '../services/api';
+import { calculateDistance, fetchPlaceById, createCheckIn, addPointsToUser, User } from '../services/api';
 import { Place } from './models';
 
 const CHECK_IN_RADIUS_KM = 0.5; // 500 meters
@@ -82,10 +82,18 @@ export default function CheckInScreen() {
   }, [place]);
 
   const handleCheckIn = async () => {
-    if (!userLocation || !place || !currentUser) {
+    if (!userLocation || !place) {
+      Alert.alert('Error', 'Unable to check in. Location or place data is missing.');
+      return;
+    }
+    
+    // Get fresh user data from AsyncStorage
+    const userJson = await AsyncStorage.getItem('user');
+    if (!userJson) {
       Alert.alert('Error', 'Unable to check in. Please ensure you are logged in.');
       return;
     }
+    const user: User = JSON.parse(userJson);
     
     const dist = calculateDistance(userLocation.latitude, userLocation.longitude, place.lat, place.lon);
     if (dist > CHECK_IN_RADIUS_KM) {
@@ -97,15 +105,28 @@ export default function CheckInScreen() {
     
     setCheckingIn(true);
     try {
-      // Actually create the check-in in the database
-      await createCheckIn(currentUser.id, place.id);
-      console.log('Check-in successful:', { userId: currentUser.id, placeId: place.id, latitude: userLocation.latitude, longitude: userLocation.longitude });
-      Alert.alert('✓ Check-In Successful!', `You've checked in at ${place.name}!`, [{ text: 'OK', onPress: () => router.back() }]);
+      // Create the check-in in the database
+      await createCheckIn(user.id, place.id);
+      
+      // Add 50 points to the user
+      const updatedUser = await addPointsToUser(user.id, 50);
+      
+      // Update the user in AsyncStorage with new points
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      console.log('Check-in successful:', { userId: user.id, placeId: place.id, pointsAdded: 50 });
+      
+      // Navigate to VisitedPlacesScreen immediately
+      router.push('/(tabs)/VisitedPlacesScreen');
+      
+      // Show success message without blocking navigation
+      setTimeout(() => {
+        Alert.alert('✓ Check-In Successful!', `You've checked in at ${place.name} and earned 50 points!`);
+      }, 100);
     } catch (err) {
       console.error('Check-in error:', err);
       Alert.alert('Error', 'Failed to complete check-in. Please try again.');
-    } finally { 
-      setCheckingIn(false); 
+      setCheckingIn(false);
     }
   };
 
