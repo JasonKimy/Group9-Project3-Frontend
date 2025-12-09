@@ -200,7 +200,7 @@ console.log('User ID:', userId);
         ) : (
           friends.map(friend => (
             <ListItem key={friend.id}>
-              <span>{friend.username}</span>
+              <span style={styles.username}>{friend.username}</span>
               <div style={styles.actions}>
                 <button style={styles.buttonDanger} onClick={() => removeFriend(friend.friend_2_id)}>Remove</button>
                 <button style={styles.buttonSecondary} onClick={() => block(friend.friend_1_id)}>Block</button>
@@ -217,7 +217,7 @@ console.log('User ID:', userId);
         ) : (
           pending.map(p => (
             <ListItem key={p.id}>
-              <span>{p.username}</span>
+              <span style={styles.username}>{p.username}</span>
               <button style={styles.buttonSecondary} onClick={() => removeFriend(p.friend_2_id)}>Cancel</button>
             </ListItem>
           ))
@@ -231,7 +231,7 @@ console.log('User ID:', userId);
         ) : (
           incoming.map(request => (
             <ListItem key={request.id}>
-              <span>{request.username}</span>
+              <span style={styles.username}>{request.username}</span>
               <div style={styles.actions}>
                 <button style={styles.buttonPrimary} onClick={() => acceptFriendRequest(request.id)}>Accept</button>
                 <button style={styles.buttonDanger} onClick={() => rejectFriendRequest(request.id)}>Reject</button>
@@ -249,7 +249,7 @@ console.log('User ID:', userId);
         ) : (
           blocked.map(b => (
             <ListItem key={b.id}>
-              <span>{b.username}</span>
+              <span style={styles.username}>{b.username}</span>
               <button style={styles.buttonPrimary} onClick={() => unblock(b.friend_2_id)}>Unblock</button>
             </ListItem>
           ))
@@ -316,6 +316,11 @@ const styles = {
     alignItems: 'center',
     borderLeft: '5px solid #2AB3B6',
     boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+  },
+
+  username: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 
   actions: {
