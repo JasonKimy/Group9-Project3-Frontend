@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // API base URL - should match the backend deployment
 const API_BASE_URL = 'https://wander-api-196ebd783842.herokuapp.com/api';
@@ -27,6 +28,7 @@ export default function Friends() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setuserId] = useState<string | null>(null);
+  const [friendUsername, setFriendUsername] = useState('');
 
   useEffect(() => {
     const loadUser = async () => {
@@ -103,6 +105,8 @@ export default function Friends() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ senderId: userId, receiverId: data.id })
       });
+      // Refresh the friends list after accepting
+      fetchFriends();
     } catch {
       setError('An error occurred while sending friend request');
     }
@@ -219,145 +223,182 @@ console.log('User ID:', userId);
     }
   };
 
-  const styles = {
+  const styles = StyleSheet.create({
     background: {
-      height: '100vh',
-      backgroundColor: '#1D3A40',
-      overflow: 'hidden',
+      flex: 1,
+      backgroundColor: '#15292E',
     },
     scrollContainer: {
-      height: '100%',
-      overflowY: 'auto' as const,
-      padding: '20px',
-    },
-    container: {
-      padding: '20px',
-      maxWidth: '650px',
-      margin: '20px auto',
-      backgroundColor: '#F6FFFF',
-      borderRadius: '12px',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+      flex: 1,
+      padding: 30,
     },
     header: {
-      fontSize: '32px',
+      fontSize: 36,
       fontWeight: '800',
-      color: '#0A3D3F',
-      marginBottom: '20px',
+      marginBottom: 32,
+      color: '#7AD7C3',
+      textAlign: 'center',
+      letterSpacing: 1.5,
+      textShadowColor: 'rgba(122, 215, 195, 0.35)',
+      textShadowOffset: { width: 0, height: 0 },
+      textShadowRadius: 14,
     },
-    loading: { padding: 20 },
-    error: { padding: 20, color: 'red' },
+    loading: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 40,
+    },
+    loadingText: {
+      color: 'white',
+      fontSize: 20,
+    },
+    error: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 40,
+    },
+    errorText: {
+      color: '#FF6B6B',
+      fontSize: 20,
+    },
     section: {
-      marginBottom: '30px',
+      marginBottom: 42,
+      backgroundColor: '#1D3A40',
+      padding: 22,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: '#26494F',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 5 },
+      shadowOpacity: 0.35,
+      shadowRadius: 14,
+      elevation: 14,
     },
     sectionTitle: {
-      fontSize: '24px',
+      fontSize: 24,
       fontWeight: '700',
-      color: '#0A3D3F',
-      marginBottom: '12px',
+      marginBottom: 16,
+      color: '#7AD7C3',
+      letterSpacing: 1,
     },
     card: {
-      display: 'flex',
+      flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '15px 20px',
-      marginBottom: '10px',
-      backgroundColor: '#FFFFFF',
-      borderRadius: '8px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+      padding: 16,
+      marginBottom: 12,
+      backgroundColor: '#0E2226',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#26494F',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      elevation: 8,
     },
     username: {
-      fontSize: '18px',
-      fontWeight: '600',
-      color: '#0A3D3F',
+      fontSize: 18,
+      fontWeight: '500',
+      color: '#FFFFFF',
     },
     actions: {
-      display: 'flex',
-      gap: '10px',
+      flexDirection: 'row',
+      gap: 10,
     },
     buttonPrimary: {
-      padding: '8px 16px',
-      backgroundColor: '#0A3D3F',
-      color: '#F6FFFF',
-      border: 'none',
-      borderRadius: '6px',
-      fontSize: '14px',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      backgroundColor: '#7AD7C3',
+      borderRadius: 6,
+    },
+    buttonPrimaryText: {
+      color: '#0E2226',
+      fontSize: 14,
       fontWeight: '600',
-      cursor: 'pointer',
     },
     buttonSecondary: {
-      padding: '8px 16px',
-      backgroundColor: '#8AAAB9',
-      color: '#F6FFFF',
-      border: 'none',
-      borderRadius: '6px',
-      fontSize: '14px',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      backgroundColor: '#26494F',
+      borderRadius: 6,
+    },
+    buttonSecondaryText: {
+      color: '#FFFFFF',
+      fontSize: 14,
       fontWeight: '600',
-      cursor: 'pointer',
     },
     buttonDanger: {
-      padding: '8px 16px',
+      paddingVertical: 8,
+      paddingHorizontal: 16,
       backgroundColor: '#CC4444',
-      color: '#F6FFFF',
-      border: 'none',
-      borderRadius: '6px',
-      fontSize: '14px',
+      borderRadius: 6,
+    },
+    buttonDangerText: {
+      color: '#FFFFFF',
+      fontSize: 14,
       fontWeight: '600',
-      cursor: 'pointer',
     },
     empty: {
-      fontSize: '16px',
-      color: '#8AAAB9',
+      fontSize: 16,
+      color: '#A0C4C4',
       fontStyle: 'italic',
+      textAlign: 'center',
     },
     addContainer: {
-      display: 'flex',
-      gap: '10px',
-      marginTop: '10px',
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 10,
       alignItems: 'center',
     },
     input: {
       flex: 1,
-      padding: '10px 15px',
-      fontSize: '16px',
-      border: '1px solid #8AAAB9',
-      borderRadius: '6px',
+      padding: 10,
+      paddingHorizontal: 15,
+      fontSize: 16,
+      borderWidth: 1,
+      borderColor: '#26494F',
+      borderRadius: 6,
+      backgroundColor: '#0E2226',
+      color: '#FFFFFF',
     },
-  };
+  });
 
-  if (loading) return <div style={styles.loading}>Loading friends...</div>;
-  if (error) return <div style={styles.error}>Error: {error}</div>;
+  if (loading) return <View style={styles.loading}><Text style={styles.loadingText}>Loading friends...</Text></View>;
+  if (error) return <View style={styles.error}><Text style={styles.errorText}>Error: {error}</Text></View>;
 
   const Section = ({ title, children }: any) => (
-    <div style={styles.section}>
-      <h2 style={styles.sectionTitle}>{title}</h2>
-      <div>{children}</div>
-    </div>
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <View>{children}</View>
+    </View>
   );
 
   const ListItem = ({ children }: any) => (
-    <div style={styles.card}>
+    <View style={styles.card}>
       {children}
-    </div>
+    </View>
   );
 
   return (
-    <div style={styles.background}>
-      <div style={styles.scrollContainer}>
-        <div style={styles.container}>
-          <h1 style={styles.header}>My Friends</h1>
+    <View style={styles.background}>
+      <ScrollView style={styles.scrollContainer}>
+        <Text style={styles.header}>My Friends</Text>
 
       {/* FRIENDS */}
       <Section title="Friends">
         {friends.length === 0 ? (
-          <p style={styles.empty}>No friends</p>
+          <Text style={styles.empty}>No friends</Text>
         ) : (
           friends.map(friend => (
             <ListItem key={friend.id}>
-              <span style={styles.username}>{friend.username}</span>
-              <div style={styles.actions}>
-                <button style={styles.buttonDanger} onClick={() => removeFriend(friend.friend_2_id)}>Remove</button>
-                <button style={styles.buttonSecondary} onClick={() => block(friend.friend_1_id)}>Block</button>
-              </div>
+              <Text style={styles.username}>{friend.username}</Text>
+              <View style={styles.actions}>
+                <TouchableOpacity style={styles.buttonDanger} onPress={() => removeFriend(friend.friend_2_id)}><Text style={styles.buttonDangerText}>Remove</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.buttonSecondary} onPress={() => block(friend.friend_1_id)}><Text style={styles.buttonSecondaryText}>Block</Text></TouchableOpacity>
+              </View>
             </ListItem>
           ))
         )}
@@ -366,12 +407,12 @@ console.log('User ID:', userId);
       {/* PENDING */}
       <Section title="Pending Requests">
         {pending.length === 0 ? (
-          <p style={styles.empty}>No pending requests</p>
+          <Text style={styles.empty}>No pending requests</Text>
         ) : (
           pending.map(p => (
             <ListItem key={p.id}>
-              <span style={styles.username}>{p.username}</span>
-              <button style={styles.buttonSecondary} onClick={() => removeFriend(p.friend_2_id)}>Cancel</button>
+              <Text style={styles.username}>{p.username}</Text>
+              <TouchableOpacity style={styles.buttonSecondary} onPress={() => removeFriend(p.friend_2_id)}><Text style={styles.buttonSecondaryText}>Cancel</Text></TouchableOpacity>
             </ListItem>
           ))
         )}
@@ -380,16 +421,16 @@ console.log('User ID:', userId);
       {/* INCOMING */}
       <Section title="Incoming Requests">
         {incoming.length === 0 ? (
-          <p style={styles.empty}>No incoming requests</p>
+          <Text style={styles.empty}>No incoming requests</Text>
         ) : (
           incoming.map(request => (
             <ListItem key={request.id}>
-              <span style={styles.username}>{request.username}</span>
-              <div style={styles.actions}>
-                <button style={styles.buttonPrimary} onClick={() => acceptFriendRequest(request.id)}>Accept</button>
-                <button style={styles.buttonDanger} onClick={() => rejectFriendRequest(request.id)}>Reject</button>
-                <button style={styles.buttonSecondary} onClick={() => block(request.friend_1_id)}>Block</button>
-              </div>
+              <Text style={styles.username}>{request.username}</Text>
+              <View style={styles.actions}>
+                <TouchableOpacity style={styles.buttonPrimary} onPress={() => acceptFriendRequest(request.id)}><Text style={styles.buttonPrimaryText}>Accept</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.buttonDanger} onPress={() => rejectFriendRequest(request.id)}><Text style={styles.buttonDangerText}>Reject</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.buttonSecondary} onPress={() => block(request.friend_1_id)}><Text style={styles.buttonSecondaryText}>Block</Text></TouchableOpacity>
+              </View>
             </ListItem>
           ))
         )}
@@ -398,34 +439,32 @@ console.log('User ID:', userId);
       {/* BLOCKED */}
       <Section title="Blocked Users">
         {blocked.length === 0 ? (
-          <p style={styles.empty}>No blocked users</p>
+          <Text style={styles.empty}>No blocked users</Text>
         ) : (
           blocked.map(b => (
             <ListItem key={b.id}>
-              <span style={styles.username}>{b.username}</span>
-              <button style={styles.buttonPrimary} onClick={() => unblock(b.friend_2_id)}>Unblock</button>
+              <Text style={styles.username}>{b.username}</Text>
+              <TouchableOpacity style={styles.buttonPrimary} onPress={() => unblock(b.friend_2_id)}><Text style={styles.buttonPrimaryText}>Unblock</Text></TouchableOpacity>
             </ListItem>
           ))
         )}
       </Section>
 
       {/* ADD FRIEND */}
-      <h2 style={styles.sectionTitle}>Add a Friend</h2>
-      <div style={styles.addContainer}>
-        <input id="friendUsername" placeholder="Enter username" style={styles.input} />
-        <button
+      <Text style={styles.sectionTitle}>Add a Friend</Text>
+      <View style={styles.addContainer}>
+        <TextInput placeholder="Enter username" placeholderTextColor="#A0C4C4" style={styles.input} value={friendUsername} onChangeText={setFriendUsername} />
+        <TouchableOpacity
           style={styles.buttonPrimary}
-          onClick={() => {
-            const input = document.getElementById('friendUsername') as HTMLInputElement;
-            sendFriendRequest(input.value);
-            input.value = '';
+          onPress={() => {
+            sendFriendRequest(friendUsername);
+            setFriendUsername('');
           }}
         >
-          Send Request
-        </button>
-      </div>
-        </div>
-      </div>
-    </div>
+          <Text style={styles.buttonPrimaryText}>Send Request</Text>
+        </TouchableOpacity>
+      </View>
+      </ScrollView>
+    </View>
   );
 }
