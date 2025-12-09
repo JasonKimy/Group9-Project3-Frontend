@@ -390,6 +390,47 @@ export async function deleteDeck(deckId: number): Promise<void> {
   }
 }
 
+/**
+ * Update user decks when favorite challenges change
+ * Replaces all 3 decks with 2 new favorite challenge decks and 1 new random deck
+ */
+export async function updateUserDecks(
+  userId: string, 
+  oldFavChallenge1: string, 
+  oldFavChallenge2: string,
+  newFavChallenge1: string, 
+  newFavChallenge2: string
+): Promise<void> {
+  try {
+    // Get all user's current decks
+    const currentDecks = await getUserDecks(userId);
+    
+    // Delete ALL existing decks (all 3)
+    await Promise.all(currentDecks.map(deck => deleteDeck(deck.id)));
+    
+    // Get all available categories for random selection
+    const allCategories = await fetchCategories();
+    const nonFavoriteCategories = allCategories.filter(
+      (cat) => cat !== newFavChallenge1 && cat !== newFavChallenge2
+    );
+    
+    // Select a new random category
+    const randomCategory = nonFavoriteCategories.length > 0
+      ? nonFavoriteCategories[Math.floor(Math.random() * nonFavoriteCategories.length)]
+      : allCategories[0];
+    
+    // Create 3 new decks: 2 favorite challenges + 1 random
+    await Promise.all([
+      createDeck(userId, newFavChallenge1),
+      createDeck(userId, newFavChallenge2),
+      createDeck(userId, randomCategory),
+    ]);
+  } catch (error) {
+    console.error('Error updating user decks:', error);
+    throw error;
+  }
+}
+
 // ============= Check-in Functions =============
 
 export interface CheckIn {
@@ -448,8 +489,8 @@ export async function updateUserFavoriteChallenges(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      fav_challenge_1: favChallenge1,
-      fav_challenge_2: favChallenge2,
+      favChallenge1: favChallenge1,
+      favChallenge2: favChallenge2,
     }),
   });
   if (!response.ok) {

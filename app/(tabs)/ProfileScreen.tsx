@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { User, updateUserFavoriteChallenges, updateUserAvatar } from '../services/api';
+import { User, updateUserFavoriteChallenges, updateUserAvatar, updateUserDecks } from '../services/api';
 
 // Color palette
 const COLORS = {
@@ -324,9 +324,22 @@ export default function ProfileScreen() {
     try {
       setLoading(true);
       
+      // Store old challenges for deck update
+      const oldFavChallenge1 = user.fav_challenge_1 || '';
+      const oldFavChallenge2 = user.fav_challenge_2 || '';
+      
       // Update backend
       const updatedUser = await updateUserFavoriteChallenges(
         user.id,
+        tempFavChallenge1,
+        tempFavChallenge2
+      );
+      
+      // Update decks to match new favorite challenges
+      await updateUserDecks(
+        user.id,
+        oldFavChallenge1,
+        oldFavChallenge2,
         tempFavChallenge1,
         tempFavChallenge2
       );
@@ -336,7 +349,7 @@ export default function ProfileScreen() {
       await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
       
       setChallengeModalVisible(false);
-      showAlert('Success', 'Favorite challenges updated successfully!');
+      showAlert('Success', 'Favorite challenges and decks updated successfully!');
     } catch (error) {
       console.error('Error updating challenges:', error);
       showAlert('Error', 'Failed to update challenges. Please try again.');
