@@ -118,7 +118,7 @@ export default function Friends() {
           });
         
         if (acceptResponse.ok) {
-          // Refresh the friends list after accepting
+// Refresh the friends list after accepting
           await fetchFriends();
         } else {
           const errorText = await acceptResponse.text();
@@ -140,7 +140,6 @@ export default function Friends() {
           });
         
         if (rejectResponse.ok) {
-          // Refresh the friends list after rejecting
           await fetchFriends();
         } else {
           const errorText = await rejectResponse.text();
@@ -162,7 +161,7 @@ export default function Friends() {
         });
         
         if (response.ok) {
-          // Refresh the friends list after removing
+// Refresh the friends list after removing
           await fetchFriends();
         } else {
           const errorText = await response.text();
@@ -183,7 +182,7 @@ export default function Friends() {
       });
       
       if (response.ok) {
-        // Refresh the friends list after blocking
+// Refresh the friends list after blocking
         await fetchFriends();
       } else {
         const errorText = await response.text();
@@ -207,7 +206,7 @@ export default function Friends() {
         });
         
         if (response.ok) {
-          // Refresh the friends list after unblocking
+// Refresh the friends list after unblocking
           await fetchFriends();
         } else {
           const errorText = await response.text();
@@ -220,97 +219,167 @@ export default function Friends() {
   };
 
   if (loading) {
-    return <div>Loading friends...</div>;
+    return <div style={styles.loading}>Loading friends...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div style={styles.error}>Error: {error}</div>;
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>My Friends</h1>
+    <div style={styles.container}>
+      <h1 style={styles.header}>My Friends</h1>
       
       Friends:
       {friends.length === 0 ? (
-        <p>No friends</p>
+        <p style={styles.empty}>No friends</p>
       ) : (
         <ul>
           {friends.map((friend) => (
-          <div key={friend.id}>
-            {friend.username}
-            <button onClick={() => removeFriend(friend.friend_2_id)}>
-              Remove
-            </button>
-            <button onClick={() => block(friend.friend_1_id)}>
-              Block
-            </button>
+          <div key={friend.id} style={styles.card}>
+            <span>{friend.username}</span>
+            <div style={styles.actions}>
+              <button style={styles.buttonDanger} onClick={() => removeFriend(friend.friend_2_id)}>Remove</button>
+              <button style={styles.buttonSecondary} onClick={() => block(friend.friend_1_id)}>Block</button>
+            </div>
           </div>
           ))}
         </ul>
       )}
       Pending Requests:
       {pending.length === 0 ? (
-        <p>No pending requests</p>
+        <p style={styles.empty}>No pending requests</p>
       ) : (
         <ul>
           {pending.map((pending) => (
-          <div key={pending.id}>
-            {pending.username}
-            <button onClick={() => removeFriend(pending.friend_2_id)}>
-              Cancel
-            </button>
+          <div key={pending.id} style={styles.card}>
+            <span>{pending.username}</span>
+            <button style={styles.buttonSecondary} onClick={() => removeFriend(pending.friend_2_id)}>Cancel</button>
           </div>
           ))}
         </ul>
       )}
       Incoming Requests:
       {incoming.length === 0 ? (
-        <p>No incoming requests</p>
+        <p style={styles.empty}>No incoming requests</p>
       ) : (
         <ul>
           {incoming.map((request) => (
-          <div key={request.id}>
-            {request.username}
-            <button onClick={() => acceptFriendRequest(request.id)}>
-              Accept
-            </button>
-            <button onClick={() => rejectFriendRequest(request.id)}>
-              Reject
-            </button>
-            <button onClick={() => block(request.friend_1_id)}>
-              Block
-            </button>
+          <div key={request.id} style={styles.card}>
+            <span>{request.username}</span>
+            <div style={styles.actions}>
+              <button style={styles.buttonPrimary} onClick={() => acceptFriendRequest(request.id)}>Accept</button>
+              <button style={styles.buttonDanger} onClick={() => rejectFriendRequest(request.id)}>Reject</button>
+              <button style={styles.buttonSecondary} onClick={() => block(request.friend_1_id)}>Block</button>
+            </div>
           </div>
           ))}
         </ul>
       )}
       Blocked Users:
       {blocked.length === 0 ? (
-        <p>No blocked users</p>
+        <p style={styles.empty}>No blocked users</p>
       ) : (
         <ul>
           {blocked.map((blocked) => (
-          <div key={blocked.id}>
-            {blocked.username}
-            <button onClick={() => unblock(blocked.friend_2_id)}>
-              Unblock
-            </button>
+          <div key={blocked.id} style={styles.card}>
+            <span>{blocked.username}</span>
+            <button style={styles.buttonPrimary} onClick={() => unblock(blocked.friend_2_id)}>Unblock</button>
           </div>
           ))}
         </ul>
       )}
-      <h2>Add a friend</h2>
-      <input type="text" id="friendUsername" placeholder="Enter friend's username" />
-      <button 
+      <h2 style={styles.sectionTitle}>Add a friend</h2>
+      <input type="text" id="friendUsername" placeholder="Enter friend's username" style={styles.input}/>
+      <button style={styles.buttonPrimary}
         onClick={() => {
             const input = document.getElementById('friendUsername') as HTMLInputElement;
             sendFriendRequest(input.value);
             input.value = '';
-        }} 
+        }}
       >
         Send Friend Request
       </button>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    padding: '25px',
+    maxWidth: '800px',
+    margin: '0 auto',
+    backgroundColor: '#F6FFFF',
+    borderRadius: '12px',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+  },
+  header: {
+    fontSize: '32px',
+    fontWeight: '800',
+    color: '#0A3D3F',
+    marginBottom: '20px',
+  },
+  sectionTitle: {
+    fontSize: '22px',
+    color: '#147A7E',
+    marginBottom: '10px',
+  },
+  card: {
+    backgroundColor: '#0A3D3F',
+    padding: '14px 18px',
+    marginBottom: '10px',
+    borderRadius: '12px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderLeft: '5px solid #2AB3B6',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+  },
+  actions: {
+    display: 'flex',
+    gap: '10px',
+  },
+  buttonPrimary: {
+    backgroundColor: '#2AB3B6',
+    color: 'white',
+    padding: '6px 14px',
+    borderRadius: '8px',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  buttonSecondary: {
+    backgroundColor: '#E2F4F4',
+    color: '#0A3D3F',
+    padding: '6px 14px',
+    borderRadius: '8px',
+    border: '1px solid #A6D3D3',
+    cursor: 'pointer',
+  },
+  buttonDanger: {
+    backgroundColor: '#FF6B6B',
+    color: 'white',
+    padding: '6px 14px',
+    borderRadius: '8px',
+    border: 'none',
+    cursor: 'pointer',
+  },
+  input: {
+    padding: '10px',
+    borderRadius: '8px',
+    border: '1px solid #CFECEC',
+    flex: 1,
+    marginBottom: '10px',
+  },
+  empty: {
+    color: '#789',
+    fontStyle: 'italic',
+    marginBottom: '10px',
+  },
+  loading: {
+    padding: '20px',
+  },
+  error: {
+    padding: '20px',
+    color: 'red',
+  },
+};

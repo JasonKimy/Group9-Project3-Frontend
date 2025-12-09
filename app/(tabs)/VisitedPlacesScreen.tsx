@@ -88,12 +88,12 @@ export default function VisitedPlacesScreen() {
     } else if (diffDays < 7) {
       return `${diffDays} days ago`;
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
-      });
-    }
+      return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    });
+}
   };
 
   const formatCategoryName = (category: string): string => {
@@ -116,15 +116,18 @@ export default function VisitedPlacesScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.headerContainer}>
+          <Text style={styles.appTitle}>WANDER</Text>
           <Text style={styles.header}>My Visits</Text>
           <Text style={styles.subheader}>Track your adventures</Text>
         </View>
+
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyEmoji}>📍</Text>
           <Text style={styles.emptyText}>No visits yet!</Text>
           <Text style={styles.emptySubtext}>
             Start exploring and checking in to places to build your collection.
           </Text>
+
           <TouchableOpacity 
             style={styles.exploreButton} 
             onPress={() => router.push('/(tabs)/HomeScreen')}
@@ -138,7 +141,9 @@ export default function VisitedPlacesScreen() {
 
   return (
     <View style={styles.container}>
+
       <View style={styles.headerContainer}>
+        <Text style={styles.appTitle}>WANDER</Text>
         <Text style={styles.header}>My Visits</Text>
         <Text style={styles.subheader}>{checkIns.length} places visited</Text>
       </View>
@@ -158,24 +163,28 @@ export default function VisitedPlacesScreen() {
                 resizeMode="cover"
               />
             )}
+
             <View style={styles.checkInContent}>
               <View style={styles.checkInHeader}>
                 <View style={styles.checkInInfo}>
                   <Text style={styles.placeName}>
                     {item.place?.name || 'Unknown Place'}
                   </Text>
+
                   {item.place && (
                     <>
-                      <Text style={styles.placeCategory}>
-                        {formatCategoryName(item.place.category)} • {item.place.city}
-                      </Text>
+                    <Text style={styles.placeCategory}>
+                      {formatCategoryName(item.place.category)} • {item.place.city}
+                    </Text>
                     </>
                   )}
                 </View>
+
                 <View style={styles.timestampBadge}>
                   <Text style={styles.timestampText}>{formatDate(item.timestamp)}</Text>
                 </View>
               </View>
+
               {item.place?.description && (
                 <Text style={styles.placeDescription} numberOfLines={2}>
                   {item.place.description}
@@ -203,50 +212,71 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.darkBlue,
   },
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.darkBlue,
   },
+
   loadingText: {
     marginTop: 12,
     fontSize: 16,
     color: COLORS.white,
   },
+
   headerContainer: {
     backgroundColor: COLORS.tealDark,
-    padding: 20,
-    paddingTop: 60,
+    padding: 28,
+    paddingTop: 70,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.teal,
+    alignItems: 'center',
   },
+
+  appTitle: {
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: 3,
+    color: COLORS.mint,
+    marginBottom: 10,
+    textShadowColor: 'rgba(122,215,195,0.25)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 12,
+  },
+
   header: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 4,
     color: COLORS.mint,
   },
+
   subheader: {
     fontSize: 16,
     color: COLORS.teal,
   },
+
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
   },
+
   emptyEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
+    fontSize: 70,
+    marginBottom: 18,
   },
+
   emptyText: {
-    fontSize: 24,
-    fontWeight: '600',
+    fontSize: 26,
+    fontWeight: '700',
     color: COLORS.white,
-    marginBottom: 8,
+    marginBottom: 6,
   },
+
   emptySubtext: {
     fontSize: 16,
     color: COLORS.teal,
@@ -254,74 +284,93 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     lineHeight: 24,
   },
+
   exploreButton: {
     backgroundColor: COLORS.mint,
-    paddingHorizontal: 32,
+    paddingHorizontal: 36,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
+    shadowColor: COLORS.mint,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
   },
+
   exploreButtonText: {
     color: COLORS.white,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
+
   listContent: {
-    padding: 16,
+    padding: 18,
   },
+
   checkInCard: {
     backgroundColor: COLORS.tealDark,
-    borderRadius: 16,
-    marginBottom: 16,
+    borderRadius: 20,
+    marginBottom: 18,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 5,
   },
+
   checkInPhoto: {
     width: '100%',
-    height: 200,
+    height: 220,
     backgroundColor: COLORS.teal,
   },
+
   checkInContent: {
-    padding: 16,
+    padding: 18,
   },
+
   checkInHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 10,
   },
+
   checkInInfo: {
     flex: 1,
     marginRight: 12,
   },
+
   placeName: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     color: COLORS.mint,
     marginBottom: 4,
   },
+
   placeCategory: {
     fontSize: 14,
     color: COLORS.teal,
     fontWeight: '500',
   },
+
   timestampBadge: {
     backgroundColor: COLORS.teal,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 14,
   },
+
   timestampText: {
     fontSize: 12,
     color: COLORS.white,
-    fontWeight: '600',
+    fontWeight: '700',
   },
+
   placeDescription: {
-    fontSize: 14,
+    fontSize: 15,
     color: COLORS.white,
-    lineHeight: 20,
+    opacity: 0.85,
+    lineHeight: 21,
+    marginTop: 6,
   },
 });
