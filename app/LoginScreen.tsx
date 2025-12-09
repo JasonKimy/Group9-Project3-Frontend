@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AuthSession from 'expo-auth-session';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useState } from 'react';
@@ -310,37 +311,19 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
             disabled={loading}
           >
             <Text style={styles.toggleText}>
-              Don't have an account? Create one
+              Don't have an account? Create one{'\n'}
             </Text>
           </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.githubButton} onPress={handleGitHubLogin}>
+              <Image source={require('/Users/will/Group9-Project3-Frontend-2/assets/github.svg')} style={{ width: 24, height: 24 }} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
+              <Image source={require('/Users/will/Group9-Project3-Frontend-2/assets/google.webp')} style={{ width: 24, height: 24 }} />
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      
-       <View>
-         {githubLoading ? (
-           <ActivityIndicator size="large" color="#333" />
-         ) : (
-           <TouchableOpacity
-             onPress={handleGitHubLogin}
-             disabled={!githubRequest}
-           >
-             <Text>login with github</Text>
-           </TouchableOpacity>
-         )}
-
-         <View/>
-
-         {googleLoading ? (
-           <ActivityIndicator size="large" color="#DB4437" />
-         ) : (
-           <TouchableOpacity
-             onPress={handleGoogleLogin}
-             disabled={!googleRequest}
-           >
-             <Text>login with google</Text>
-           </TouchableOpacity>
-         )}
-       </View>
 
     </SafeAreaView>
   );
@@ -376,6 +359,32 @@ const styles = StyleSheet.create({
   challengeContainer: {
     width: '100%',
     marginBottom: 20,
+  },
+  githubButton: {
+    padding: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: COLORS.mint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 8,
+  },
+  googleButton: {
+    padding: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: COLORS.mint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 8,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   challengeLabel: {
     color: COLORS.mint,
