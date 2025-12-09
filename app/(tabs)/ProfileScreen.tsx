@@ -16,6 +16,7 @@ import {
   View
 } from 'react-native';
 import { User, updateUserFavoriteChallenges, updateUserAvatar, updateUserDecks } from '../services/api';
+import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 // Color palette
 const COLORS = {
@@ -374,22 +375,14 @@ export default function ProfileScreen() {
     setChallengeModalVisible(true);
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.mint} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   if (!user) {
     return null;
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <>
+      <MorphingLoadingScreen visible={loading} />
+      <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Profile</Text>
 
@@ -623,6 +616,7 @@ export default function ProfileScreen() {
         </View>
       </Modal>
     </SafeAreaView>
+    </>
   );
 }
 

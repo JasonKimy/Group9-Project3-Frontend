@@ -324,8 +324,56 @@ console.log('User ID:', userId);
     },
   };
 
-  if (loading) return <div style={styles.loading}>Loading friends...</div>;
   if (error) return <div style={styles.error}>Error: {error}</div>;
+
+  const LoadingOverlay = () => (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: '#15292E',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 9999,
+    }}>
+      <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
+        <div style={{
+          width: 0,
+          height: 0,
+          borderLeft: '15px solid transparent',
+          borderRight: '15px solid transparent',
+          borderBottom: '26px solid #1DA27E',
+          animation: 'hop 1.2s infinite ease-in-out',
+        }}></div>
+        <div style={{
+          width: 0,
+          height: 0,
+          borderLeft: '15px solid transparent',
+          borderRight: '15px solid transparent',
+          borderBottom: '26px solid #1DA27E',
+          animation: 'hop 1.2s infinite ease-in-out 0.2s',
+        }}></div>
+        <div style={{
+          width: 0,
+          height: 0,
+          borderLeft: '15px solid transparent',
+          borderRight: '15px solid transparent',
+          borderBottom: '26px solid #1DA27E',
+          animation: 'hop 1.2s infinite ease-in-out 0.4s',
+        }}></div>
+      </div>
+      <style>{`
+        @keyframes hop {
+          0%, 100% { transform: translateY(0); }
+          33% { transform: translateY(-20px); }
+          66% { transform: translateY(0); }
+        }
+      `}</style>
+    </div>
+  );
 
   const Section = ({ title, children }: any) => (
     <div style={styles.section}>
@@ -341,9 +389,11 @@ console.log('User ID:', userId);
   );
 
   return (
-    <div style={styles.background}>
-      <div style={styles.scrollContainer}>
-        <div style={styles.container}>
+    <>
+      {loading && <LoadingOverlay />}
+      <div style={styles.background}>
+        <div style={styles.scrollContainer}>
+          <div style={styles.container}>
           <h1 style={styles.header}>My Friends</h1>
 
       {/* FRIENDS */}
@@ -427,5 +477,6 @@ console.log('User ID:', userId);
         </div>
       </div>
     </div>
+    </>
   );
 }

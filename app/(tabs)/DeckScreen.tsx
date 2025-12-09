@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { calculateDistance, getDeckById, Deck, Place } from '../services/api';
+import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 const KM_TO_MILES = 0.621371; // Conversion factor
 
@@ -105,28 +106,24 @@ export default function DeckScreen() {
       .join(' ') + 's';
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading places...</Text>
-      </View>
-    );
-  }
-
   if (!deck || deck.places.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No places found in this deck.</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(tabs)/HomeScreen')}>
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
+      <>
+        <MorphingLoadingScreen visible={loading} />
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No places found in this deck.</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(tabs)/HomeScreen')}>
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <>
+      <MorphingLoadingScreen visible={loading} />
+      <View style={styles.container}>
       <View style={styles.headerContainer}>
         <TouchableOpacity style={styles.backButtonContainer} onPress={() => router.push('/(tabs)/HomeScreen')}>
           <Ionicons name="arrow-back" size={24} color={COLORS.mint} />
@@ -168,6 +165,7 @@ export default function DeckScreen() {
         contentContainerStyle={styles.listContent}
       />
     </View>
+    </>
   );
 }
 

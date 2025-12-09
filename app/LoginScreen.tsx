@@ -17,6 +17,7 @@ import {
   View
 } from 'react-native';
 import { loginOAuth, loginUser } from './services/api';
+import MorphingLoadingScreen from './components/MorphingLoadingScreen';
 
 // Web-compatible alert function
 const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -263,12 +264,14 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
 
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView contentContainerStyle={styles.container}>
+    <>
+      <MorphingLoadingScreen visible={loading || githubLoading || googleLoading} />
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <ScrollView contentContainerStyle={styles.container}>
           <Text style={styles.title}>Login</Text>
 
           <TextInput
@@ -298,11 +301,7 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
             disabled={loading}
             testID="login-button"
           >
-            {loading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text style={styles.buttonText}>Login</Text>
-            )}
+            <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -317,32 +316,25 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
       </KeyboardAvoidingView>
       
        <View>
-         {githubLoading ? (
-           <ActivityIndicator size="large" color="#333" />
-         ) : (
-           <TouchableOpacity
-             onPress={handleGitHubLogin}
-             disabled={!githubRequest}
-           >
-             <Text>login with github</Text>
-           </TouchableOpacity>
-         )}
+         <TouchableOpacity
+           onPress={handleGitHubLogin}
+           disabled={!githubRequest}
+         >
+           <Text>login with github</Text>
+         </TouchableOpacity>
 
          <View/>
 
-         {googleLoading ? (
-           <ActivityIndicator size="large" color="#DB4437" />
-         ) : (
-           <TouchableOpacity
-             onPress={handleGoogleLogin}
-             disabled={!googleRequest}
-           >
-             <Text>login with google</Text>
-           </TouchableOpacity>
-         )}
+         <TouchableOpacity
+           onPress={handleGoogleLogin}
+           disabled={!googleRequest}
+         >
+           <Text>login with google</Text>
+         </TouchableOpacity>
        </View>
 
     </SafeAreaView>
+    </>
   );
 }
 // Styles for the login / create account page

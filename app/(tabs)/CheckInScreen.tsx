@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, Touchable
 import { Ionicons } from '@expo/vector-icons';
 import { calculateDistance, fetchPlaceById } from '../services/api';
 import { Place } from './models';
+import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 const CHECK_IN_RADIUS_KM = 0.5; // 500 meters
 const KM_TO_MILES = 0.621371; // Conversion factor
@@ -90,15 +91,6 @@ export default function CheckInScreen() {
     } finally { setCheckingIn(false); }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.mint} />
-        <Text style={styles.loadingText}>Loading place details...</Text>
-      </View>
-    );
-  }
-
   if (!place) {
     return (
       <View style={styles.errorContainer}>
@@ -110,7 +102,9 @@ export default function CheckInScreen() {
   const isWithinRadius = distance !== null && distance <= CHECK_IN_RADIUS_KM;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <>
+      <MorphingLoadingScreen visible={loading} />
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <TouchableOpacity style={styles.backButtonContainer} onPress={() => router.back()}>
         <Ionicons name="arrow-back" size={24} color={COLORS.mint} />
         <Text style={styles.backButtonText}>Back</Text>
@@ -151,6 +145,7 @@ export default function CheckInScreen() {
         {userLocation && <Text style={styles.coordinatesText}>Your location: {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}</Text>}
       </View>
     </ScrollView>
+    </>
   );
 }
 

@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CheckIn, fetchPlaceById, getUserCheckIns, Place, User } from '../services/api';
+import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 const COLORS = {
   darkBlue: '#15292E',
@@ -103,18 +104,11 @@ export default function VisitedPlacesScreen() {
       .join(' ');
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.mint} />
-        <Text style={styles.loadingText}>Loading your visited places...</Text>
-      </View>
-    );
-  }
-
   if (checkIns.length === 0) {
     return (
-      <View style={styles.container}>
+      <>
+        <MorphingLoadingScreen visible={loading} />
+        <View style={styles.container}>
         <View style={styles.headerContainer}>
           <Text style={styles.appTitle}>WANDER</Text>
           <Text style={styles.header}>My Visits</Text>
@@ -136,11 +130,14 @@ export default function VisitedPlacesScreen() {
           </TouchableOpacity>
         </View>
       </View>
+      </>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <>
+      <MorphingLoadingScreen visible={loading} />
+      <View style={styles.container}>
 
       <View style={styles.headerContainer}>
         <Text style={styles.appTitle}>WANDER</Text>
@@ -204,6 +201,7 @@ export default function VisitedPlacesScreen() {
         }
       />
     </View>
+    </>
   );
 }
 
