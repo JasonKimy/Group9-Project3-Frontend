@@ -39,58 +39,58 @@ export default function Friends() {
     loadUser();
   }, []);
 
-  useEffect(() => {
-    const fetchFriends = async () => {
-      if (!userId) return;
-      try {
-        // Fetch friends using the user's ID
-        const response1 = await fetch(`${API_BASE_URL}/friends/${userId}`);
-        const response2 = await fetch(`${API_BASE_URL}/friends/sent/${userId}`);
-        const response3 = await fetch(`${API_BASE_URL}/friends/incoming/${userId}`);
-        const response4 = await fetch(`${API_BASE_URL}/friends/blocked/${userId}`);
-        
-        const friends = [...await response1.json()];
-        const pending = [...await response2.json()];
-        const incoming = [...await response3.json()];
-        const blocked = [...await response4.json()];
+  const fetchFriends = async () => {
+    if (!userId) return;
+    try {
+      // Fetch friends using the user's ID
+      const response1 = await fetch(`${API_BASE_URL}/friends/${userId}`);
+      const response2 = await fetch(`${API_BASE_URL}/friends/sent/${userId}`);
+      const response3 = await fetch(`${API_BASE_URL}/friends/incoming/${userId}`);
+      const response4 = await fetch(`${API_BASE_URL}/friends/blocked/${userId}`);
+      
+      const friends = [...await response1.json()];
+      const pending = [...await response2.json()];
+      const incoming = [...await response3.json()];
+      const blocked = [...await response4.json()];
 
-        for (let i = 0; i < friends.length; i++) {
-          const userResponse = await fetch(`${API_BASE_URL}/users/${friends[i].friend_2_id}`);
-          const user = await userResponse.json();
-          friends[i].username = user.username;
-        }
-        
-        for (let i = 0; i < pending.length; i++) {
-          const userResponse = await fetch(`${API_BASE_URL}/users/${pending[i].friend_2_id}`);
-          const user = await userResponse.json();
-          pending[i].username = user.username;
-        }
-        
-        for (let i = 0; i < incoming.length; i++) {
-          const userResponse = await fetch(`${API_BASE_URL}/users/${incoming[i].friend_1_id}`);
-          const user = await userResponse.json();
-          incoming[i].username = user.username;
-        }
-
-        for (let i = 0; i < blocked.length; i++) {
-          const userResponse = await fetch(`${API_BASE_URL}/users/${blocked[i].friend_2_id}`);
-          const user = await userResponse.json();
-          blocked[i].username = user.username;
-        }
-        
-        setFriends(friends);
-        setPending(pending);
-        setIncoming(incoming);
-        setBlocked(blocked);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
+      for (let i = 0; i < friends.length; i++) {
+        const userResponse = await fetch(`${API_BASE_URL}/users/${friends[i].friend_2_id}`);
+        const user = await userResponse.json();
+        friends[i].username = user.username;
       }
-    };
-    useEffect(() => {
-      fetchFriends();
-    }, [userId]);
+      
+      for (let i = 0; i < pending.length; i++) {
+        const userResponse = await fetch(`${API_BASE_URL}/users/${pending[i].friend_2_id}`);
+        const user = await userResponse.json();
+        pending[i].username = user.username;
+      }
+      
+      for (let i = 0; i < incoming.length; i++) {
+        const userResponse = await fetch(`${API_BASE_URL}/users/${incoming[i].friend_1_id}`);
+        const user = await userResponse.json();
+        incoming[i].username = user.username;
+      }
+
+      for (let i = 0; i < blocked.length; i++) {
+        const userResponse = await fetch(`${API_BASE_URL}/users/${blocked[i].friend_2_id}`);
+        const user = await userResponse.json();
+        blocked[i].username = user.username;
+      }
+      
+      setFriends(friends);
+      setPending(pending);
+      setIncoming(incoming);
+      setBlocked(blocked);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFriends();
+  }, [userId]);
 
   const sendFriendRequest = async (friendUser: string) => {
     try {
@@ -219,6 +219,111 @@ console.log('User ID:', userId);
     }
   };
 
+  const styles = {
+    background: {
+      height: '100vh',
+      backgroundColor: '#1D3A40',
+      overflow: 'hidden',
+    },
+    scrollContainer: {
+      height: '100%',
+      overflowY: 'auto' as const,
+      padding: '20px',
+    },
+    container: {
+      padding: '20px',
+      maxWidth: '650px',
+      margin: '20px auto',
+      backgroundColor: '#F6FFFF',
+      borderRadius: '12px',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+    },
+    header: {
+      fontSize: '32px',
+      fontWeight: '800',
+      color: '#0A3D3F',
+      marginBottom: '20px',
+    },
+    loading: { padding: 20 },
+    error: { padding: 20, color: 'red' },
+    section: {
+      marginBottom: '30px',
+    },
+    sectionTitle: {
+      fontSize: '24px',
+      fontWeight: '700',
+      color: '#0A3D3F',
+      marginBottom: '12px',
+    },
+    card: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '15px 20px',
+      marginBottom: '10px',
+      backgroundColor: '#FFFFFF',
+      borderRadius: '8px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+    },
+    username: {
+      fontSize: '18px',
+      fontWeight: '600',
+      color: '#0A3D3F',
+    },
+    actions: {
+      display: 'flex',
+      gap: '10px',
+    },
+    buttonPrimary: {
+      padding: '8px 16px',
+      backgroundColor: '#0A3D3F',
+      color: '#F6FFFF',
+      border: 'none',
+      borderRadius: '6px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+    },
+    buttonSecondary: {
+      padding: '8px 16px',
+      backgroundColor: '#8AAAB9',
+      color: '#F6FFFF',
+      border: 'none',
+      borderRadius: '6px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+    },
+    buttonDanger: {
+      padding: '8px 16px',
+      backgroundColor: '#CC4444',
+      color: '#F6FFFF',
+      border: 'none',
+      borderRadius: '6px',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+    },
+    empty: {
+      fontSize: '16px',
+      color: '#8AAAB9',
+      fontStyle: 'italic',
+    },
+    addContainer: {
+      display: 'flex',
+      gap: '10px',
+      marginTop: '10px',
+      alignItems: 'center',
+    },
+    input: {
+      flex: 1,
+      padding: '10px 15px',
+      fontSize: '16px',
+      border: '1px solid #8AAAB9',
+      borderRadius: '6px',
+    },
+  };
+
   if (loading) return <div style={styles.loading}>Loading friends...</div>;
   if (error) return <div style={styles.error}>Error: {error}</div>;
 
@@ -236,8 +341,10 @@ console.log('User ID:', userId);
   );
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.header}>My Friends</h1>
+    <div style={styles.background}>
+      <div style={styles.scrollContainer}>
+        <div style={styles.container}>
+          <h1 style={styles.header}>My Friends</h1>
 
       {/* FRIENDS */}
       <Section title="Friends">
@@ -317,98 +424,8 @@ console.log('User ID:', userId);
           Send Request
         </button>
       </div>
+        </div>
+      </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    padding: '25px',
-    maxWidth: '800px',
-    margin: '0 auto',
-    backgroundColor: '#F6FFFF',
-    borderRadius: '12px',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-  },
-  header: {
-    fontSize: '32px',
-    fontWeight: '800',
-    color: '#0A3D3F',
-    marginBottom: '20px',
-  },
-  loading: { padding: 20 },
-  error: { padding: 20, color: 'red' },
-
-  section: {
-    marginBottom: '30px',
-  },
-  sectionTitle: {
-    fontSize: '22px',
-    color: '#147A7E',
-    marginBottom: '10px',
-  },
-  empty: {
-    color: '#789',
-    fontStyle: 'italic',
-  },
-
-  card: {
-    backgroundColor: '#0A3D3F',
-    padding: '14px 18px',
-    marginBottom: '10px',
-    borderRadius: '12px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderLeft: '5px solid #2AB3B6',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-  },
-
-  username: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-
-  actions: {
-    display: 'flex',
-    gap: '10px',
-  },
-
-  buttonPrimary: {
-    backgroundColor: '#2AB3B6',
-    color: 'white',
-    padding: '6px 14px',
-    borderRadius: '8px',
-    border: 'none',
-    cursor: 'pointer',
-  },
-  buttonSecondary: {
-    backgroundColor: '#E2F4F4',
-    color: '#0A3D3F',
-    padding: '6px 14px',
-    borderRadius: '8px',
-    border: '1px solid #A6D3D3',
-    cursor: 'pointer',
-  },
-  buttonDanger: {
-    backgroundColor: '#FF6B6B',
-    color: 'white',
-    padding: '6px 14px',
-    borderRadius: '8px',
-    border: 'none',
-    cursor: 'pointer',
-  },
-
-  addContainer: {
-    display: 'flex',
-    gap: '10px',
-    marginTop: '10px',
-  },
-
-  input: {
-    padding: '10px',
-    borderRadius: '8px',
-    border: '1px solid #CFECEC',
-    flex: 1,
-  },
-};

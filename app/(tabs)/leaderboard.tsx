@@ -75,10 +75,11 @@ export default function Leaderboard() {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>Leaderboards</h1>
+      <div style={styles.scrollContainer}>
+        <h1 style={styles.header}>Leaderboards</h1>
 
-      {/* GLOBAL LEADERBOARD */}
-      <div style={styles.section}>
+        {/* GLOBAL LEADERBOARD */}
+        <div style={styles.section}>
         <h2 style={styles.sectionTitle}>Global Leaderboard</h2>
 
         <ol style={styles.list}>
@@ -132,17 +133,24 @@ export default function Leaderboard() {
           </>
         )}
       </div>
+      </div>
     </div>
   );
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    padding: '30px',
-    minHeight: '100%',
+    height: '100vh',
     backgroundColor: '#15292E',
     color: '#FFFFFF',
     fontFamily: 'Inter, Arial, sans-serif',
+    overflow: 'hidden',
+  },
+
+  scrollContainer: {
+    height: '100%',
+    overflowY: 'auto',
+    padding: '30px',
   },
 
   header: {

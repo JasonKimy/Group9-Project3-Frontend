@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View, Image, ScrollView, Animated } from 'react-native';
-import { getUserDecks, User, Deck, getFriendsWithDecks, FriendWithDecks } from '../services/api';
+import { ActivityIndicator, Animated, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Deck, FriendWithDecks, getFriendsWithDecks, getUserDecks, User } from '../services/api';
 
 //color palette
 const COLORS = {
@@ -188,48 +188,6 @@ export default function HomeScreen() {
         <Text style={styles.heroSubtitle}>Find your next adventure</Text>
       </View>
 
-      {/* CONTENT AREA */}
-      <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
-        <Text style={styles.sectionTitle}>This Week’s Challenges</Text>
-        <Text style={styles.sectionSubtitle}>
-          {decks.reduce((sum, deck) => sum + deck.places.length, 0)} curated experiences
-        </Text>
-
-        <FlatList
-          data={decks}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl 
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              colors={[COLORS.mint]}
-              tintColor={COLORS.mint}
-            />
-          }
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => router.push(`/deck/${item.id}`)}
-              activeOpacity={0.8}
-            >
-              {/* CARD CONTENT */}
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardEmoji}>{getCategoryEmoji(item.category)}</Text>
-
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>{formatCategoryName(item.category)}</Text>
-                  <Text style={styles.cardDescription}>
-                    {getCategoryDescription(item.category, item.places.length)}
-                  </Text>
-                </View>
-
-                <Text style={styles.cardArrow}>›</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
-      </Animated.View>
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -240,13 +198,7 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* HERO HEADER (from finalized-layout) */}
-        <View style={styles.heroContainer}>
-          <Text style={styles.heroTitle}>WANDER</Text>
-          <Text style={styles.heroSubtitle}>Find your next adventure</Text>
-        </View>
-
-        {/* CONTENT AREA (finalized styles, main functionality) */}
+        {/* CONTENT AREA */}
         <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
           <Text style={styles.sectionTitle}>This Week’s Challenges</Text>
           <Text style={styles.sectionSubtitle}>
