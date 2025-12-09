@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 // API base URL - should match the backend deployment
 const API_BASE_URL = 'https://wander-api-196ebd783842.herokuapp.com/api';
@@ -366,57 +367,7 @@ console.log('User ID:', userId);
     },
   });
 
-  if (loading) return <View style={styles.loading}><Text style={styles.loadingText}>Loading friends...</Text></View>;
   if (error) return <View style={styles.error}><Text style={styles.errorText}>Error: {error}</Text></View>;
-
-  const LoadingOverlay = () => (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: '#15292E',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 9999,
-    }}>
-      <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
-        <div style={{
-          width: 0,
-          height: 0,
-          borderLeft: '15px solid transparent',
-          borderRight: '15px solid transparent',
-          borderBottom: '26px solid #1DA27E',
-          animation: 'hop 1.2s infinite ease-in-out',
-        }}></div>
-        <div style={{
-          width: 0,
-          height: 0,
-          borderLeft: '15px solid transparent',
-          borderRight: '15px solid transparent',
-          borderBottom: '26px solid #1DA27E',
-          animation: 'hop 1.2s infinite ease-in-out 0.2s',
-        }}></div>
-        <div style={{
-          width: 0,
-          height: 0,
-          borderLeft: '15px solid transparent',
-          borderRight: '15px solid transparent',
-          borderBottom: '26px solid #1DA27E',
-          animation: 'hop 1.2s infinite ease-in-out 0.4s',
-        }}></div>
-      </div>
-      <style>{`
-        @keyframes hop {
-          0%, 100% { transform: translateY(0); }
-          33% { transform: translateY(-20px); }
-          66% { transform: translateY(0); }
-        }
-      `}</style>
-    </div>
-  );
 
   const Section = ({ title, children }: any) => (
     <View style={styles.section}>
@@ -432,9 +383,11 @@ console.log('User ID:', userId);
   );
 
   return (
-    <View style={styles.background}>
-      <ScrollView style={styles.scrollContainer}>
-        <Text style={styles.header}>My Friends</Text>
+    <>
+      <MorphingLoadingScreen visible={loading} />
+      <View style={styles.background}>
+        <ScrollView style={styles.scrollContainer}>
+          <Text style={styles.header}>My Friends</Text>
 
       {/* FRIENDS */}
       <Section title="Friends">
@@ -515,5 +468,6 @@ console.log('User ID:', userId);
       </View>
       </ScrollView>
     </View>
+    </>
   );
 }
