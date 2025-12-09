@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 interface User {
   id: string;
@@ -63,10 +64,6 @@ export default function Leaderboard() {
     return leaderboard.some(user => user.id === userId);
   };
 
-  if (loading) {
-    return <View style={styles.loading}><Text style={styles.loadingText}>Loading leaderboards...</Text></View>;
-  }
-
   if (error) {
     return <View style={styles.error}><Text style={styles.errorText}>Error: {error}</Text></View>;
   }
@@ -75,7 +72,9 @@ export default function Leaderboard() {
   const showFriendsUser = currentUser && !isUserInLeaderboard(friendsLeaderboard, currentUser.id);
 
   return (
-    <View style={styles.container}>
+    <>
+      <MorphingLoadingScreen visible={loading} />
+      <View style={styles.container}>
       <ScrollView style={styles.scrollContainer}>
         <Text style={styles.header}>Leaderboards</Text>
 
@@ -136,6 +135,7 @@ export default function Leaderboard() {
       </View>
       </ScrollView>
     </View>
+    </>
   );
 }
 

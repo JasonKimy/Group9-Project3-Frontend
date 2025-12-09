@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 // API base URL - should match the backend deployment
 const API_BASE_URL = 'https://wander-api-196ebd783842.herokuapp.com/api';
@@ -366,7 +367,6 @@ console.log('User ID:', userId);
     },
   });
 
-  if (loading) return <View style={styles.loading}><Text style={styles.loadingText}>Loading friends...</Text></View>;
   if (error) return <View style={styles.error}><Text style={styles.errorText}>Error: {error}</Text></View>;
 
   const Section = ({ title, children }: any) => (
@@ -383,9 +383,11 @@ console.log('User ID:', userId);
   );
 
   return (
-    <View style={styles.background}>
-      <ScrollView style={styles.scrollContainer}>
-        <Text style={styles.header}>My Friends</Text>
+    <>
+      <MorphingLoadingScreen visible={loading} />
+      <View style={styles.background}>
+        <ScrollView style={styles.scrollContainer}>
+          <Text style={styles.header}>My Friends</Text>
 
       {/* FRIENDS */}
       <Section title="Friends">
@@ -466,5 +468,6 @@ console.log('User ID:', userId);
       </View>
       </ScrollView>
     </View>
+    </>
   );
 }

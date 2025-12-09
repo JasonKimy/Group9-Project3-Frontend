@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Deck, FriendWithDecks, getFriendsWithDecks, getUserDecks, User } from '../services/api';
+import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 //color palette
 const COLORS = {
@@ -171,17 +172,10 @@ export default function HomeScreen() {
     return `${desc} • ${count} place${count !== 1 ? 's' : ''}`;
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.mint} />
-        <Text style={styles.loadingText}>Loading your experience...</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
+    <>
+      <MorphingLoadingScreen visible={loading} />
+      <View style={styles.container}>
       {/* HERO HEADER */}
       <View style={styles.heroContainer}>
         <Text style={styles.heroTitle}>WANDER</Text>
@@ -275,6 +269,7 @@ export default function HomeScreen() {
         </Animated.View>
       </ScrollView>
     </View>
+    </>
   );
 }
 

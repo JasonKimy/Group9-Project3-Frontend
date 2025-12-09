@@ -17,6 +17,7 @@ import {
   View
 } from 'react-native';
 import { createDeck, createUser, fetchCategories } from './services/api';
+import MorphingLoadingScreen from './components/MorphingLoadingScreen';
 
 // Web-compatible alert function
 const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -271,12 +272,14 @@ export default function SignUpScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView contentContainerStyle={styles.container}>
+    <>
+      <MorphingLoadingScreen visible={loading} />
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <ScrollView contentContainerStyle={styles.container}>
           <Text style={styles.title}>Create Account</Text>
 
           <TextInput
@@ -447,11 +450,7 @@ export default function SignUpScreen() {
             disabled={loading}
             testID="create-button"
           >
-            {loading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text style={styles.buttonText}>Create Account</Text>
-            )}
+            <Text style={styles.buttonText}>Create Account</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -465,6 +464,7 @@ export default function SignUpScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </>
   );
 }
 
