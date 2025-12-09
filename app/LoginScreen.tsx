@@ -316,10 +316,10 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
           </TouchableOpacity>
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.githubButton} onPress={handleGitHubLogin}>
-              <Image source={require('/Users/will/Group9-Project3-Frontend-2/assets/github.svg')} style={{ width: 24, height: 24 }} />
+              <Image source={require('../assets/github.svg')} style={{ width: 24, height: 24 }} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
-              <Image source={require('/Users/will/Group9-Project3-Frontend-2/assets/google.webp')} style={{ width: 24, height: 24 }} />
+              <Image source={require('../assets/google.webp')} style={{ width: 24, height: 24 }} />
             </TouchableOpacity>
           </View>
         </ScrollView>
