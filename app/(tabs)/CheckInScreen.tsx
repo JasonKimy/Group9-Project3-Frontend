@@ -3,7 +3,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { calculateDistance, fetchPlaceById } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { calculateDistance, fetchPlaceById, createCheckIn, addPointsToUser, User } from '../services/api';
 import { Place } from './models';
 import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
@@ -29,12 +30,21 @@ export default function CheckInScreen() {
   const [checkingIn, setCheckingIn] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Fetch place details
+  // Fetch current user and place details
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
+        // Get current user from AsyncStorage
+        const userJson = await AsyncStorage.getItem('user');
+        if (userJson && mounted) {
+          const user: User = JSON.parse(userJson);
+          setCurrentUser(user);
+        }
+        
+        // Fetch place details
         const placeData = await fetchPlaceById(placeId);
         if (mounted) setPlace(placeData);
       } catch (err) {
@@ -73,7 +83,19 @@ export default function CheckInScreen() {
   }, [place]);
 
   const handleCheckIn = async () => {
-    if (!userLocation || !place) return;
+    if (!userLocation || !place) {
+      Alert.alert('Error', 'Unable to check in. Location or place data is missing.');
+      return;
+    }
+    
+    // Get fresh user data from AsyncStorage
+    const userJson = await AsyncStorage.getItem('user');
+    if (!userJson) {
+      Alert.alert('Error', 'Unable to check in. Please ensure you are logged in.');
+      return;
+    }
+    const user: User = JSON.parse(userJson);
+    
     const dist = calculateDistance(userLocation.latitude, userLocation.longitude, place.lat, place.lon);
     if (dist > CHECK_IN_RADIUS_KM) {
       const distMiles = (dist * KM_TO_MILES).toFixed(2);
@@ -81,14 +103,32 @@ export default function CheckInScreen() {
       Alert.alert('Too Far Away', `You must be within ${radiusMiles} miles to check in. You are ${distMiles} miles away.`);
       return;
     }
+    
     setCheckingIn(true);
     try {
-      console.log('Check-in successful:', { placeId: place.id, latitude: userLocation.latitude, longitude: userLocation.longitude });
-      Alert.alert('✓ Check-In Successful!', `You've checked in at ${place.name}!`, [{ text: 'OK', onPress: () => router.back() }]);
+      // Create the check-in in the database
+      await createCheckIn(user.id, place.id);
+      
+      // Add 50 points to the user
+      const updatedUser = await addPointsToUser(user.id, 50);
+      
+      // Update the user in AsyncStorage with new points
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      console.log('Check-in successful:', { userId: user.id, placeId: place.id, pointsAdded: 50 });
+      
+      // Navigate to VisitedPlacesScreen immediately
+      router.push('/(tabs)/VisitedPlacesScreen');
+      
+      // Show success message without blocking navigation
+      setTimeout(() => {
+        Alert.alert('✓ Check-In Successful!', `You've checked in at ${place.name} and earned 50 points!`);
+      }, 100);
     } catch (err) {
-      console.error(err);
-      Alert.alert('Error', 'Failed to complete check-in.');
-    } finally { setCheckingIn(false); }
+      console.error('Check-in error:', err);
+      Alert.alert('Error', 'Failed to complete check-in. Please try again.');
+      setCheckingIn(false);
+    }
   };
 
   if (!place) {

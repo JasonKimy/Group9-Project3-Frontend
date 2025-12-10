@@ -15,6 +15,7 @@ export interface User {
   fav_challenge_1?: string;
   fav_challenge_2?: string;
   avatar_url?: string;
+  points?: number;
 }
 
 export interface Place {
@@ -512,6 +513,23 @@ export async function updateUserAvatar(userId: string, avatarUrl: string): Promi
   });
   if (!response.ok) {
     throw new Error(`Failed to update avatar: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Add points to user
+ */
+export async function addPointsToUser(userId: string, points: number): Promise<User> {
+  const response = await fetch(`${API_BASE_URL}/users/${userId}/points/add`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ points }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to add points: ${response.status}`);
   }
   return response.json();
 }
