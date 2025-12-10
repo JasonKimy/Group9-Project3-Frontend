@@ -1,32 +1,51 @@
 // jest.setup.js
 import '@testing-library/jest-native/extend-expect';
 
-// Ensure alert(...) exists in tests
-if (typeof global.alert !== 'function') {
-  global.alert = jest.fn();
-}
+jest.mock('expo-router', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+  }),
+}));
 
-// (Optional) silence the SafeArea deprecation noise
-let warnSpy;
-beforeAll(() => {
-  const origWarn = console.warn.bind(console);
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation((msg, ...rest) => {
-    if (typeof msg === 'string' && msg.includes('SafeAreaView has been deprecated')) return;
-    origWarn(msg, ...rest);
-  });
-});
+const originalWarn = console.warn;
+console.warn = (...args) => {
+  const msg = args[0];
+  if (
+    typeof msg === 'string' &&
+    msg.includes('SafeAreaView has been deprecated')
+  ) {
+    return;
+  }
+  originalWarn(...args);
+};
 
-afterAll(() => {
-  if (warnSpy && typeof warnSpy.mockRestore === 'function') {
-    warnSpy.mockRestore();
+const originalLog = console.log;
+console.log = (...args) => {
+  const msg = args[0];
+  if (typeof msg === 'string' && msg.includes('No user found in storage')) {
+    return;
   }
-});
+  originalLog(...args);
+};
 
-// --- Polyfill window.dispatchEvent for react-test-renderer DEV path
-if (typeof global.window === 'undefined') {
-    global.window = {};
+const originalError = console.error;
+console.error = (...args) => {
+  const msg = args[0];
+
+  // Swallow React "not wrapped in act(...)" warnings
+  if (typeof msg === 'string' && msg.includes('not wrapped in act')) {
+    return;
   }
-  if (typeof global.window.dispatchEvent !== 'function') {
-    global.window.dispatchEvent = () => {};
+
+  // Swallow the *expected* "Network error" from CheckInScreen error test
+  if (
+    (msg instanceof Error && msg.message === 'Network error') ||
+    (typeof msg === 'string' && msg.includes('Network error'))
+  ) {
+    return;
   }
-  
+
+  originalError(...args);
+};

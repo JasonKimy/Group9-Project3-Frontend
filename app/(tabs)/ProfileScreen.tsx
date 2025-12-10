@@ -387,7 +387,7 @@ export default function ProfileScreen() {
         <Text style={styles.title}>Profile</Text>
 
         {/* Avatar Section */}
-        <TouchableOpacity onPress={openAvatarModal} style={styles.avatarContainer}>
+        <TouchableOpacity testID="avatar-button" onPress={openAvatarModal} style={styles.avatarContainer}>
           <Image
             source={getAvatarImage(user.avatar_url)}
             style={styles.avatarImage}
