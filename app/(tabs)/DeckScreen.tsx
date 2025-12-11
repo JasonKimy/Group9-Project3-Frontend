@@ -3,8 +3,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { calculateDistance, getDeckById, Deck, Place } from '../services/api';
+import { calculateDistance, getDeckById, Deck, Place, getUserCheckIns, User } from '../services/api';
 import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KM_TO_MILES = 0.621371; // Conversion factor
 
@@ -22,7 +23,11 @@ export default function DeckScreen() {
   const [deck, setDeck] = useState<Deck | null>(null);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [visitedPlaceIds, setVisitedPlaceIds] = useState<Set<string>>(new Set());
+  const [visitedPlacesLoaded, setVisitedPlacesLoaded] = useState(false);
+  const [deckLoaded, setDeckLoaded] = useState(false);
 
+  // Fetch user location and visited places
   useEffect(() => {
     let mounted = true;
 
@@ -42,6 +47,27 @@ export default function DeckScreen() {
       } catch (err) {
         console.warn('Could not get location:', err);
       }
+
+      // Fetch user's check-ins to determine visited places
+      try {
+        const userJson = await AsyncStorage.getItem('user');
+        if (userJson) {
+          const user: User = JSON.parse(userJson);
+          if (user.id) {
+            const checkIns = await getUserCheckIns(user.id);
+            const visitedIds = new Set(checkIns.map(checkIn => checkIn.placeId));
+            if (mounted) {
+              setVisitedPlaceIds(visitedIds);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch check-ins:', err);
+      } finally {
+        if (mounted) {
+          setVisitedPlacesLoaded(true);
+        }
+      }
     })();
 
     return () => {
@@ -49,9 +75,9 @@ export default function DeckScreen() {
     };
   }, []);
 
+  // Fetch deck data
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
 
     (async () => {
       try {
@@ -89,7 +115,9 @@ export default function DeckScreen() {
           Alert.alert('Error', 'Failed to load deck. Please try again.');
         }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setDeckLoaded(true);
+        }
       }
     })();
 
@@ -97,6 +125,13 @@ export default function DeckScreen() {
       mounted = false;
     };
   }, [deckId, userLocation]);
+
+  // Update loading state when both deck and visited places are loaded
+  useEffect(() => {
+    if (deckLoaded && visitedPlacesLoaded) {
+      setLoading(false);
+    }
+  }, [deckLoaded, visitedPlacesLoaded]);
 
   // Helper function to format category names (e.g., "coffee_shop" -> "Coffee Shops")
   const formatCategoryName = (category: string): string => {
@@ -138,30 +173,35 @@ export default function DeckScreen() {
       <FlatList
         data={deck.places}
         keyExtractor={(place) => place.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.placeCard, item.visited && styles.visited]}
-            onPress={() => router.push(`/checkin/${item.id}`)}
-          >
-            <View style={styles.placeInfo}>
-              <Text style={styles.placeName}>{item.name}</Text>
-              <Text style={styles.placeCity}>{item.city}</Text>
-              <Text style={styles.placeDescription} numberOfLines={2}>
-                {item.description}
-              </Text>
-              {item.distance !== undefined && (
-                <Text style={styles.distanceText}>
-                  📍 {(item.distance * KM_TO_MILES).toFixed(2)} miles away
+        renderItem={({ item }) => {
+          const isVisited = visitedPlaceIds.has(item.id);
+          return (
+            <TouchableOpacity
+              style={[styles.placeCard, isVisited && styles.visitedCard]}
+              onPress={() => !isVisited && router.push(`/checkin/${item.id}`)}
+              disabled={isVisited}
+              activeOpacity={isVisited ? 1 : 0.7}
+            >
+              <View style={styles.placeInfo}>
+                <Text style={[styles.placeName, isVisited && styles.visitedText]}>{item.name}</Text>
+                <Text style={[styles.placeCity, isVisited && styles.visitedText]}>{item.city}</Text>
+                <Text style={[styles.placeDescription, isVisited && styles.visitedText]} numberOfLines={2}>
+                  {item.description}
                 </Text>
-              )}
-            </View>
-            {item.visited && (
-              <View style={styles.visitedBadge}>
-                <Text style={styles.visitedText}>✓ Visited</Text>
+                {item.distance !== undefined && (
+                  <Text style={[styles.distanceText, isVisited && styles.visitedText]}>
+                    📍 {(item.distance * KM_TO_MILES).toFixed(2)} miles away
+                  </Text>
+                )}
               </View>
-            )}
-          </TouchableOpacity>
-        )}
+              {isVisited && (
+                <View style={styles.checkmarkBadge}>
+                  <Ionicons name="checkmark" size={28} color={COLORS.white} />
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        }}
         contentContainerStyle={styles.listContent}
       />
     </View>
@@ -251,6 +291,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  visitedCard: {
+    backgroundColor: '#0a2327', // Darker shade
+    opacity: 0.7,
   },
   placeInfo: {
     flex: 1,
@@ -278,23 +324,16 @@ const styles = StyleSheet.create({
     color: COLORS.teal,
     fontStyle: 'italic',
   },
-  visited: { 
-    backgroundColor: '#e8f5e9',
-    borderWidth: 2,
-    borderColor: COLORS.mint,
+  visitedText: {
+    color: '#rgba(255, 255, 255, 0.6)', // Dimmed text for visited places
   },
-  visitedBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: COLORS.mint,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  visitedText: { 
-    color: COLORS.white, 
-    fontWeight: 'bold',
-    fontSize: 12,
+  checkmarkBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
   },
 });
