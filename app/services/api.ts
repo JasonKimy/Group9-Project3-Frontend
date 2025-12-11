@@ -207,7 +207,8 @@ export async function createUser(
   password: string,
   email: string,
   favChallenge1?: string,
-  favChallenge2?: string
+  favChallenge2?: string,
+  avatarUrl?: string
 ): Promise<User> {
   try {
     const response = await fetch(`${API_BASE_URL}/users`, {
@@ -220,7 +221,8 @@ export async function createUser(
         password, 
         email,
         fav_challenge_1: favChallenge1,
-        fav_challenge_2: favChallenge2
+        fav_challenge_2: favChallenge2,
+        avatar_url: avatarUrl
       }),
     });
 
@@ -342,13 +344,27 @@ export interface Deck {
 
 /**
  * Create a deck for a user with a specific category
+ * Prioritizes unvisited places by passing the user's visited place IDs to the backend
  */
 export async function createDeck(userId: string, category: string): Promise<Deck> {
+  // Fetch user's check-ins to get visited place IDs
+  let visitedPlaceIds: string[] = [];
+  try {
+    const checkIns = await getUserCheckIns(userId);
+    visitedPlaceIds = checkIns.map(checkIn => checkIn.placeId);
+  } catch (err) {
+    console.warn('Could not fetch check-ins for deck creation:', err);
+    // Continue with empty array if fetch fails
+  }
+
   const response = await fetch(`${API_BASE_URL}/decks?userId=${userId}&category=${category}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      visitedPlaceIds,
+    }),
   });
 
   if (!response.ok) {

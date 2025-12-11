@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { User, updateUserFavoriteChallenges, updateUserAvatar, updateUserDecks } from '../services/api';
+import { User, updateUserFavoriteChallenges, updateUserAvatar, updateUserDecks, getUserCheckIns, fetchPlaceById, Place } from '../services/api';
 import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 // Color palette
@@ -138,6 +138,7 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [checkInCount, setCheckInCount] = useState(0);
   const [friendCount, setFriendCount] = useState(0);
+  const [topPlace, setTopPlace] = useState<{ place: Place; level: number } | null>(null);
 
   // Modal states
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
@@ -192,11 +193,36 @@ export default function ProfileScreen() {
       setTempFavChallenge1(userData.fav_challenge_1 || '');
       setTempFavChallenge2(userData.fav_challenge_2 || '');
 
-      // Fetch check-in count
-      const checkInsResponse = await fetch(`${API_BASE_URL}/checkins/user/${userData.id}`);
-      if (checkInsResponse.ok) {
-        const checkIns = await checkInsResponse.json();
-        setCheckInCount(checkIns.length);
+      // Fetch check-in count and find top place
+      const checkIns = await getUserCheckIns(userData.id);
+      setCheckInCount(checkIns.length);
+
+      // Group check-ins by place to find the most visited
+      if (checkIns.length > 0) {
+        const placeMap = new Map<string, number>();
+        checkIns.forEach(checkIn => {
+          placeMap.set(checkIn.placeId, (placeMap.get(checkIn.placeId) || 0) + 1);
+        });
+
+        // Find the place with the most visits
+        let maxVisits = 0;
+        let topPlaceId = '';
+        placeMap.forEach((count, placeId) => {
+          if (count > maxVisits) {
+            maxVisits = count;
+            topPlaceId = placeId;
+          }
+        });
+
+        // Fetch the place details
+        if (topPlaceId) {
+          try {
+            const place = await fetchPlaceById(topPlaceId);
+            setTopPlace({ place, level: maxVisits });
+          } catch (err) {
+            console.error('Error fetching top place:', err);
+          }
+        }
       }
 
       // Fetch friend count
@@ -429,6 +455,27 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>Friends</Text>
           </View>
         </View>
+
+        {/* Top Place Section */}
+        {topPlace && (
+          <View style={styles.topPlaceContainer}>
+            <Text style={styles.topPlaceTitle}>Most Visited Place</Text>
+            <View style={styles.topPlaceCard}>
+              <View style={styles.topPlaceHeader}>
+                <Text style={styles.topPlaceName}>{topPlace.place.name}</Text>
+                <View style={styles.topLevelBadge}>
+                  <Text style={styles.topLevelText}>Level {topPlace.level}</Text>
+                </View>
+              </View>
+              <Text style={styles.topPlaceCategory}>
+                {formatCategoryName(topPlace.place.category)} • {topPlace.place.city}
+              </Text>
+              <Text style={styles.topPlaceDescription} numberOfLines={2}>
+                {topPlace.place.description}
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -720,6 +767,61 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.white,
     textAlign: 'center',
+  },
+  topPlaceContainer: {
+    width: '100%',
+    marginBottom: 30,
+  },
+  topPlaceTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.mint,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  topPlaceCard: {
+    backgroundColor: COLORS.tealDark,
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: COLORS.mint,
+  },
+  topPlaceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
+  topPlaceName: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.mint,
+    flex: 1,
+    marginRight: 8,
+  },
+  topLevelBadge: {
+    backgroundColor: COLORS.mint,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  topLevelText: {
+    fontSize: 14,
+    color: COLORS.white,
+    fontWeight: '700',
+  },
+  topPlaceCategory: {
+    fontSize: 14,
+    color: COLORS.teal,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  topPlaceDescription: {
+    fontSize: 15,
+    color: COLORS.white,
+    opacity: 0.85,
+    lineHeight: 21,
   },
   logoutButton: {
     width: '100%',

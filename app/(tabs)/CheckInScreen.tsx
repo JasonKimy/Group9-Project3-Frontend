@@ -31,10 +31,21 @@ export default function CheckInScreen() {
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [placeLoaded, setPlaceLoaded] = useState(false);
+  const [locationLoaded, setLocationLoaded] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   // Fetch current user and place details
   useEffect(() => {
     let mounted = true;
+    
+    // Set a timeout to show error if loading takes too long
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        setLoadingTimeout(true);
+      }
+    }, 10000); // 10 second timeout
+    
     (async () => {
       try {
         // Get current user from AsyncStorage
@@ -51,10 +62,17 @@ export default function CheckInScreen() {
         console.error(err);
         if (mounted) Alert.alert('Error', 'Failed to load place details.');
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setPlaceLoaded(true);
+          clearTimeout(timeoutId);
+        }
       }
     })();
-    return () => { mounted = false; };
+    
+    return () => { 
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [placeId]);
 
   // Get user location
@@ -64,7 +82,10 @@ export default function CheckInScreen() {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          if (mounted) Alert.alert('Permission Required', 'Location access is required for check-ins.');
+          if (mounted) {
+            Alert.alert('Permission Required', 'Location access is required for check-ins.');
+            setLocationLoaded(true);
+          }
           return;
         }
         const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
@@ -77,10 +98,19 @@ export default function CheckInScreen() {
       } catch (err) {
         console.error(err);
         if (mounted) Alert.alert('Error', 'Failed to get your location.');
+      } finally {
+        if (mounted) setLocationLoaded(true);
       }
     })();
     return () => { mounted = false; };
   }, [place]);
+
+  // Update loading state when both place and location are loaded
+  useEffect(() => {
+    if (placeLoaded && locationLoaded) {
+      setLoading(false);
+    }
+  }, [placeLoaded, locationLoaded]);
 
   const handleCheckIn = async () => {
     if (!userLocation || !place) {
@@ -131,11 +161,21 @@ export default function CheckInScreen() {
     }
   };
 
-  if (!place) {
+  // Show error only if place failed to load AND timeout expired
+  if (!place && loadingTimeout) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Place not found.</Text>
-      </View>
+      <>
+        <MorphingLoadingScreen visible={false} />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Place not found.</Text>
+          <TouchableOpacity 
+            style={styles.checkInButton} 
+            onPress={() => router.back()}
+          >
+            <Text style={styles.checkInButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </>
     );
   }
 
@@ -143,17 +183,18 @@ export default function CheckInScreen() {
 
   return (
     <>
-      <MorphingLoadingScreen visible={loading} />
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <TouchableOpacity style={styles.backButtonContainer} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={24} color={COLORS.mint} />
-        <Text style={styles.backButtonText}>Back</Text>
-      </TouchableOpacity>
-      
-      <View style={styles.card}>
-        <Text style={styles.title}>{place.name}</Text>
-        <Text style={styles.category}>{place.category.replace('_',' ').toUpperCase()} • {place.city}</Text>
-        <Text style={styles.description}>{place.description}</Text>
+      <MorphingLoadingScreen visible={loading || !place} />
+      {place && (
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+          <TouchableOpacity style={styles.backButtonContainer} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.mint} />
+            <Text style={styles.backButtonText}>Back</Text>
+          </TouchableOpacity>
+          
+          <View style={styles.card}>
+            <Text style={styles.title}>{place.name}</Text>
+            <Text style={styles.category}>{place.category.replace('_',' ').toUpperCase()} • {place.city}</Text>
+            <Text style={styles.description}>{place.description}</Text>
         {distance !== null && (
           <View style={styles.distanceContainer}>
             <Text style={styles.distanceLabel}>Distance from you:</Text>
@@ -180,11 +221,12 @@ export default function CheckInScreen() {
         {!userLocation && <Text style={styles.warningText}>Getting your location...</Text>}
       </View>
 
-      <View style={styles.coordinatesContainer}>
-        <Text style={styles.coordinatesText}>Place coordinates: {place.lat.toFixed(4)}, {place.lon.toFixed(4)}</Text>
-        {userLocation && <Text style={styles.coordinatesText}>Your location: {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}</Text>}
-      </View>
-    </ScrollView>
+          <View style={styles.coordinatesContainer}>
+            <Text style={styles.coordinatesText}>Place coordinates: {place.lat.toFixed(4)}, {place.lon.toFixed(4)}</Text>
+            {userLocation && <Text style={styles.coordinatesText}>Your location: {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}</Text>}
+          </View>
+        </ScrollView>
+      )}
     </>
   );
 }
