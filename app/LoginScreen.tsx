@@ -116,6 +116,10 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
   },
   googleDiscovery
 );
+{/*Alert welcome back */}
+const [toastMessage, setToastMessage] = useState('');
+const [showToast, setShowToast] = useState(false);
+
 
  useEffect(() => {
    if (githubResponse?.type === 'success') {
@@ -230,7 +234,10 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('isLoggedIn', 'true');
       
-      showAlert('Success', `Welcome back, ${user.username}!`);
+      setToastMessage(`Welcome back, ${user.username}!`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+
       router.replace('/(tabs)/HomeScreen');
     } catch (error) {
       showAlert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
@@ -253,7 +260,9 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('isLoggedIn', 'true');
       
-      showAlert('Success', `Welcome back, ${user.username}!`);
+      setToastMessage(`Welcome back, ${user.username}!`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
       router.replace('/(tabs)/HomeScreen');
     } catch (error) {
       showAlert('Login Failed', error instanceof Error ? error.message : 'User does not exist');
@@ -266,6 +275,11 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
 
   return (
     <>
+    {showToast && (
+  <View style={styles.toast}>
+    <Text style={styles.toastText}>{toastMessage}</Text>
+  </View>
+)}
       <MorphingLoadingScreen visible={loading || githubLoading || googleLoading} />
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
@@ -336,8 +350,8 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
 // Styles for the login / create account page
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: COLORS.darkBlue },
-  container: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  title: { fontSize: 26, fontWeight: 'bold', color: COLORS.mint, marginBottom: 20, marginTop: 10, },
+  container: { flexGrow: 1, justifyContent: 'flex-start', alignItems: 'center', padding: 40 },
+  title: { fontSize: 26, fontWeight: 'bold', color: COLORS.mint, marginBottom: 20,},
   input: {
     width: '100%',
     padding: 14,
@@ -425,13 +439,30 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
+    paddingVertical:10,
   },
   logoImage: {
     width: 200,
     height: 200,
     resizeMode: 'contain',
-    marginBottom: 1,
+    marginBottom: -6,
   },
+  toast: {
+    position: 'absolute',
+    top: 80,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    zIndex: 999,
+  },
+  toastText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  
   
 });
