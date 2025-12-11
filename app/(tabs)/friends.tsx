@@ -22,6 +22,9 @@ interface User {
 
 export default function Friends() {
   const [friends, setFriends] = useState<Friend[]>([]);
+  // Toast feedback
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
   const [pending, setPending] = useState<Friend[]>([]);
   const [incoming, setIncoming] = useState<Friend[]>([]);
   const [blocked, setBlocked] = useState<Friend[]>([]);
@@ -94,6 +97,12 @@ export default function Friends() {
     fetchFriends();
   }, [userId]);
 
+  const triggerToast = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2000);
+  };
+
   const sendFriendRequest = async (friendUser: string) => {
     try {
       const userNameResponse = await fetch(`${API_BASE_URL}/users/username/${friendUser}`);
@@ -108,7 +117,7 @@ export default function Friends() {
       // Refresh the friends list after accepting
       fetchFriends();
     } catch {
-      setError('An error occurred while sending friend request');
+      triggerToast('Could not send request — user does not exist.');
     }
   };
 
@@ -126,7 +135,7 @@ export default function Friends() {
           await fetchFriends();
         } else {
           const errorText = await acceptResponse.text();
-          setError(`Failed to accept friend request: ${errorText}`);
+          triggerToast('Failed to accept friend request.');
         }
     } catch (err) {
         setError('An error occurred while accepting friend request');
@@ -151,7 +160,7 @@ export default function Friends() {
           setError(`Failed to reject friend request: ${errorText}`);
         }
     } catch (err) {
-        setError('An error occurred while rejecting friend request');
+        triggerToast('Could not reject request.');
         console.error('Reject friend error:', err);
     }
   };
@@ -173,7 +182,7 @@ export default function Friends() {
           setError(`Failed to remove friend: ${errorText}`);
         }
     } catch (err) {
-        setError('An error occurred while removing friend');
+      triggerToast('Could not remove friend.');
         console.error('Remove friend error:', err);
     }
   };
@@ -194,7 +203,7 @@ export default function Friends() {
         setError(`Failed to block user: ${errorText}`);
       }
     } catch (err) {
-      setError('An error occurred while blocking user');
+      triggerToast('Failed to block user.');
       console.error('Block user error:', err);
     }
   };
@@ -218,7 +227,7 @@ console.log('User ID:', userId);
           setError(`Failed to unblock user: ${errorText}`);
         }
     } catch (err) {
-        setError('An error occurred while unblocking user');
+      triggerToast('Failed to unblock user.');
         console.error('Unblock user error:', err);
     }
   };
@@ -365,6 +374,22 @@ console.log('User ID:', userId);
       backgroundColor: '#0E2226',
       color: '#FFFFFF',
     },
+    toast: {
+      position: 'absolute',
+      top: 60,
+      alignSelf: 'center',
+      backgroundColor: 'rgba(200, 60, 60, 0.9)',
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+      zIndex: 999,
+    },
+    toastText: {
+      color: 'white',
+      fontWeight: '600',
+      fontSize: 15,
+    },
+    
   });
 
   // if (error) return <View style={styles.error}><Text style={styles.errorText}>Error: {error}</Text></View>;
@@ -385,6 +410,12 @@ console.log('User ID:', userId);
   return (
     <>
       <MorphingLoadingScreen visible={loading} />
+      {showToast && (
+  <View style={styles.toast}>
+    <Text style={styles.toastText}>{toastMessage}</Text>
+  </View>
+)}
+
       <View style={styles.background}>
         <ScrollView style={styles.scrollContainer}>
           <Text style={styles.header}>My Friends</Text>
