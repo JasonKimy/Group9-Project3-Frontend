@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CheckIn, fetchPlaceById, getUserCheckIns, Place, User } from '../services/api';
 import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
+import { Ionicons } from '@expo/vector-icons';
 
 const COLORS = {
   darkBlue: '#15292E',
@@ -13,18 +14,38 @@ const COLORS = {
   white: '#fff',
 };
 
+const COOLDOWN_HOURS = 4;
+const COOLDOWN_MS = COOLDOWN_HOURS * 60 * 60 * 1000;
+
 interface CheckInWithPlace extends CheckIn {
   place?: Place;
 }
 
+interface PlaceVisitInfo {
+  placeId: string;
+  place?: Place;
+  level: number;
+  lastCheckIn: CheckIn;
+  cooldownRemaining: number | null;
+  canCheckIn: boolean;
+}
+
 export default function VisitedPlacesScreen() {
-  const [checkIns, setCheckIns] = useState<CheckInWithPlace[]>([]);
+  const [placeVisits, setPlaceVisits] = useState<PlaceVisitInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentTime, setCurrentTime] = useState(Date.now());
   const router = useRouter();
 
   useEffect(() => {
     loadCheckIns();
+    
+    // Update timer every minute
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const loadCheckIns = async () => {
@@ -33,38 +54,72 @@ export default function VisitedPlacesScreen() {
       const userJson = await AsyncStorage.getItem('user');
       if (!userJson) {
         console.log('No user found in storage');
-        setCheckIns([]);
+        setPlaceVisits([]);
         return;
       }
 
       const user: User = JSON.parse(userJson);
       if (!user.id) {
         console.log('User has no ID');
-        setCheckIns([]);
+        setPlaceVisits([]);
         return;
       }
 
       // Fetch user's check-ins from the backend
       const userCheckIns = await getUserCheckIns(user.id);
 
-      // Fetch place details for each check-in
-      const checkInsWithPlaces = await Promise.all(
-        userCheckIns.map(async (checkIn) => {
-          try {
-            const place = await fetchPlaceById(checkIn.placeId);
-            return { ...checkIn, place };
-          } catch (err) {
-            console.error(`Error fetching place ${checkIn.placeId}:`, err);
-            return checkIn;
-          }
-        })
+      // Group check-ins by place
+      const placeMap = new Map<string, CheckIn[]>();
+      userCheckIns.forEach(checkIn => {
+        if (!placeMap.has(checkIn.placeId)) {
+          placeMap.set(checkIn.placeId, []);
+        }
+        placeMap.get(checkIn.placeId)!.push(checkIn);
+      });
+
+      // Create PlaceVisitInfo for each unique place
+      const visitInfoPromises = Array.from(placeMap.entries()).map(async ([placeId, checkIns]) => {
+        // Sort by timestamp to get the most recent
+        checkIns.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        const lastCheckIn = checkIns[0];
+        const level = checkIns.length;
+
+        // Calculate cooldown
+        const lastCheckInTime = new Date(lastCheckIn.timestamp).getTime();
+        const timeSinceLastCheckIn = Date.now() - lastCheckInTime;
+        const cooldownRemaining = COOLDOWN_MS - timeSinceLastCheckIn;
+        const canCheckIn = cooldownRemaining <= 0;
+
+        // Fetch place details
+        let place: Place | undefined;
+        try {
+          place = await fetchPlaceById(placeId);
+        } catch (err) {
+          console.error(`Error fetching place ${placeId}:`, err);
+        }
+
+        return {
+          placeId,
+          place,
+          level,
+          lastCheckIn,
+          cooldownRemaining: canCheckIn ? null : cooldownRemaining,
+          canCheckIn,
+        };
+      });
+
+      const visitInfo = await Promise.all(visitInfoPromises);
+      
+      // Sort by most recent check-in
+      visitInfo.sort((a, b) => 
+        new Date(b.lastCheckIn.timestamp).getTime() - new Date(a.lastCheckIn.timestamp).getTime()
       );
 
-      setCheckIns(checkInsWithPlaces);
+      setPlaceVisits(visitInfo);
     } catch (err) {
       console.error('Error loading check-ins:', err);
       Alert.alert('Error', 'Failed to load visited places. Please try again.');
-      setCheckIns([]);
+      setPlaceVisits([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -104,7 +159,17 @@ export default function VisitedPlacesScreen() {
       .join(' ');
   };
 
-  if (checkIns.length === 0) {
+  const formatCooldown = (ms: number): string => {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  if (placeVisits.length === 0) {
     return (
       <>
         <MorphingLoadingScreen visible={loading} />
@@ -142,54 +207,78 @@ export default function VisitedPlacesScreen() {
       <View style={styles.headerContainer}>
         <Text style={styles.appTitle}>WANDER</Text>
         <Text style={styles.header}>My Visits</Text>
-        <Text style={styles.subheader}>{checkIns.length} places visited</Text>
+        <Text style={styles.subheader}>{placeVisits.length} places visited</Text>
       </View>
 
       <FlatList
-        data={checkIns}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.checkInCard}
-            onPress={() => item.place && router.push(`/checkin/${item.placeId}`)}
-          >
-            {item.photoUri && (
-              <Image 
-                source={{ uri: item.photoUri }} 
-                style={styles.checkInPhoto}
-                resizeMode="cover"
-              />
-            )}
+        data={placeVisits}
+        keyExtractor={(item) => item.placeId}
+        renderItem={({ item }) => {
+          // Recalculate cooldown based on current time
+          const lastCheckInTime = new Date(item.lastCheckIn.timestamp).getTime();
+          const timeSinceLastCheckIn = currentTime - lastCheckInTime;
+          const cooldownRemaining = COOLDOWN_MS - timeSinceLastCheckIn;
+          const canCheckIn = cooldownRemaining <= 0;
 
-            <View style={styles.checkInContent}>
-              <View style={styles.checkInHeader}>
-                <View style={styles.checkInInfo}>
-                  <Text style={styles.placeName}>
-                    {item.place?.name || 'Unknown Place'}
-                  </Text>
-
-                  {item.place && (
-                    <>
-                    <Text style={styles.placeCategory}>
-                      {formatCategoryName(item.place.category)} • {item.place.city}
-                    </Text>
-                    </>
-                  )}
-                </View>
-
-                <View style={styles.timestampBadge}>
-                  <Text style={styles.timestampText}>{formatDate(item.timestamp)}</Text>
-                </View>
-              </View>
-
-              {item.place?.description && (
-                <Text style={styles.placeDescription} numberOfLines={2}>
-                  {item.place.description}
-                </Text>
+          return (
+            <TouchableOpacity
+              style={[styles.checkInCard, !canCheckIn && styles.cooldownCard]}
+              onPress={() => item.place && canCheckIn && router.push(`/checkin/${item.placeId}`)}
+              disabled={!canCheckIn}
+              activeOpacity={canCheckIn ? 0.7 : 1}
+            >
+              {item.lastCheckIn.photoUri && (
+                <Image 
+                  source={{ uri: item.lastCheckIn.photoUri }} 
+                  style={styles.checkInPhoto}
+                  resizeMode="cover"
+                />
               )}
-            </View>
-          </TouchableOpacity>
-        )}
+
+              <View style={styles.checkInContent}>
+                <View style={styles.checkInHeader}>
+                  <View style={styles.checkInInfo}>
+                    <View style={styles.placeNameRow}>
+                      <Text style={[styles.placeName, !canCheckIn && styles.cooldownText]}>
+                        {item.place?.name || 'Unknown Place'}
+                      </Text>
+                      <View style={styles.levelBadge}>
+                        <Text style={styles.levelText}>Level {item.level}</Text>
+                      </View>
+                    </View>
+
+                    {item.place && (
+                      <>
+                        <Text style={[styles.placeCategory, !canCheckIn && styles.cooldownText]}>
+                          {formatCategoryName(item.place.category)} • {item.place.city}
+                        </Text>
+                      </>
+                    )}
+                  </View>
+
+                  <View style={styles.timestampBadge}>
+                    <Text style={styles.timestampText}>{formatDate(item.lastCheckIn.timestamp)}</Text>
+                  </View>
+                </View>
+
+                {item.place?.description && (
+                  <Text style={[styles.placeDescription, !canCheckIn && styles.cooldownText]} numberOfLines={2}>
+                    {item.place.description}
+                  </Text>
+                )}
+
+                {!canCheckIn && (
+                  <View style={styles.cooldownBanner}>
+                    <Ionicons name="time-outline" size={18} color={COLORS.white} />
+                    <Text style={styles.cooldownBannerText}>
+                      Available in {formatCooldown(cooldownRemaining)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        }}
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl
@@ -316,6 +405,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
+  cooldownCard: {
+    backgroundColor: '#0a2327',
+    opacity: 0.8,
+  },
+
   checkInPhoto: {
     width: '100%',
     height: 220,
@@ -338,17 +432,41 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
 
+  placeNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    flexWrap: 'wrap',
+  },
+
   placeName: {
     fontSize: 22,
     fontWeight: '700',
     color: COLORS.mint,
-    marginBottom: 4,
+    marginRight: 8,
+  },
+
+  levelBadge: {
+    backgroundColor: COLORS.mint,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+
+  levelText: {
+    fontSize: 12,
+    color: COLORS.white,
+    fontWeight: '700',
   },
 
   placeCategory: {
     fontSize: 14,
     color: COLORS.teal,
     fontWeight: '500',
+  },
+
+  cooldownText: {
+    opacity: 0.6,
   },
 
   timestampBadge: {
@@ -370,5 +488,22 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     lineHeight: 21,
     marginTop: 6,
+  },
+
+  cooldownBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 12,
+    gap: 6,
+  },
+
+  cooldownBannerText: {
+    fontSize: 14,
+    color: COLORS.white,
+    fontWeight: '600',
   },
 });
