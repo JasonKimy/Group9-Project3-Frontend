@@ -273,6 +273,12 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
           style={{ flex: 1 }}
         >
           <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.logoContainer}>
+  <Image 
+    source={require('../assets/wander_logo.png')} 
+    style={styles.logoImage}/>
+</View>
+
           <Text style={styles.title}>Login</Text>
 
           <TextInput
@@ -418,4 +424,15 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: 'bold',
   },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  logoImage: {
+    width: 200,
+    height: 200,
+    resizeMode: 'contain',
+    marginBottom: 8,
+  },
+  
 });

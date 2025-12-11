@@ -110,6 +110,11 @@ export default function VisitedPlacesScreen() {
         <MorphingLoadingScreen visible={loading} />
         <View style={styles.container}>
         <View style={styles.headerContainer}>
+          {/* Background Mountain Logo */}
+        <Image
+    source={require('../../assets/mountain.png')}
+    style={styles.heroLogo}
+  />
           <Text style={styles.appTitle}>WANDER</Text>
           <Text style={styles.header}>My Visits</Text>
           <Text style={styles.subheader}>Track your adventures</Text>
@@ -371,4 +376,13 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     marginTop: 6,
   },
+  heroLogo: {
+    position: 'absolute',
+    top: 10,
+    width: 200,
+    height: 200,
+    opacity: 0.15,   // faint behind text
+    resizeMode: 'contain',
+  },
+  
 });
