@@ -83,56 +83,100 @@ export default function Leaderboard() {
         <Text style={styles.sectionTitle}>Global Leaderboard</Text>
 
         <View style={styles.list}>
-          {globalLeaderboard.map((user, index) => (
-            <View key={user.id} style={styles.listItem}>
-              <Text style={styles.rankBadge}>{index + 1}</Text>
-              <Text style={styles.username}>{user.username}</Text>
-              <Text style={styles.points}>{user.points} pts</Text>
-            </View>
-          ))}
+          {globalLeaderboard.map((user, index) => {
+            const isCurrentUser = currentUser && user.id === currentUser.id;
+            return (
+              <View key={user.id} 
+                style={[styles.listItem, isCurrentUser && styles.currentUser]}
+              >
+                <Text style={[styles.rankBadge, isCurrentUser && styles.userRank]}>
+                  {index + 1}
+                </Text>
+                <Text style={[styles.username, isCurrentUser && styles.userUsername]}>
+                  {user.username}
+                </Text>
+                <Text style={[styles.points, isCurrentUser && styles.userPoints]}>
+                  {user.points} pts
+                </Text>
+              </View>
+            );
+          })}
         </View>
+
+        {/* Player Rank Below List - Only show if NOT in top 5 */}
+        {showGlobalUser && currentUser && globalRank > 5 && (
+          <View>
+            <Text style={styles.ellipsis}>•••</Text>
+            <View style={styles.currentUser}>
+              <View style={styles.userListItem}>
+                <Text style={styles.userRank}>{globalRank}</Text>
+                <Text style={styles.userUsername}>{currentUser.username}</Text>
+                <Text style={styles.userPoints}>{currentUser.points} pts</Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Player Rank Below List */}
         {showGlobalUser && currentUser && (
-          <View style={styles.currentUser}>
+          <View>
             <Text style={styles.ellipsis}>•••</Text>
-            <Text style={styles.currentUserText}>
-              {globalRank > 5 ? globalRank : 6}. {currentUser.username} — {currentUser.points} pts
-            </Text>
+            <View style={styles.currentUser}>
+              <View style={styles.userListItem}>
+                <Text style={styles.userRank}>{globalRank > 5 ? globalRank : 6}</Text>
+                <Text style={styles.userUsername}>{currentUser.username}</Text>
+                <Text style={styles.userPoints}>{currentUser.points} pts</Text>
+              </View>
+            </View>
           </View>
         )}
       </View>
 
       {/* FRIENDS LEADERBOARD */}
-      <View style={styles.section}>
-        {friendsLeaderboard.length === 0 ? (
-          <Text style={styles.emptyText}>No friends leaderboard available</Text>
+        {friendsLeaderboard.length === 1 ||  friendsLeaderboard.length === 0 ? (
+          <Text></Text>
         ) : (
+          <View style={styles.section}>
           <>
-            <Text style={styles.sectionTitle}>Friends Leaderboard</Text>
+          <Text style={styles.sectionTitle}>Friends Leaderboard</Text>
 
-            <View style={styles.list}>
-              {friendsLeaderboard.map((user, index) => (
-                <View key={user.id} style={styles.listItem}>
-                  <Text style={styles.rankBadge}>{index + 1}</Text>
-                  <Text style={styles.username}>{user.username}</Text>
-                  <Text style={styles.points}>{user.points} pts</Text>
+          <View style={styles.list}>
+            {friendsLeaderboard.map((user, index) => {
+              const isCurrentUser = currentUser && user.id === currentUser.id;
+              
+              return (
+                <View key={user.id} 
+                  style={[styles.listItem, isCurrentUser && styles.currentUser]}
+                >
+                  <Text style={[styles.rankBadge, isCurrentUser && styles.userRank]}>
+                    {index + 1}
+                  </Text>
+                  <Text style={[styles.username, isCurrentUser && styles.userUsername]}>
+                    {user.username}
+                  </Text>
+                  <Text style={[styles.points, isCurrentUser && styles.userPoints]}>
+                    {user.points} pts
+                  </Text>
                 </View>
-              ))}
-            </View>
+              );
+            })}
+          </View>
 
             {showFriendsUser && currentUser && (
-              <View style={styles.currentUser}>
-                <Text style={styles.ellipsis}>•••</Text>
-                <Text style={styles.currentUserText}>
-                  {friendsRank > 5 ? friendsRank : 6}. {currentUser.username} —{' '}
-                  {currentUser.points} pts
-                </Text>
+              <View>
+              <Text style={styles.ellipsis}>•••</Text>
+                <View style={styles.currentUser}>
+                  <View style={styles.userListItem}>
+                    <Text style={styles.userRank}>{friendsRank > 5 ? friendsRank : 6}</Text>
+                    <Text style={styles.userUsername}>{currentUser.username}</Text>
+                    <Text style={styles.userPoints}>{currentUser.points} pts</Text>
+                  </View>
+                </View>
               </View>
             )}
           </>
+          </View>
         )}
-      </View>
       </ScrollView>
     </View>
     </>
@@ -232,7 +276,6 @@ const styles = StyleSheet.create({
   },
 
   currentUser: {
-    marginTop: 14,
     padding: 16,
     backgroundColor: '#1DA27E',
     borderRadius: 12,
@@ -256,6 +299,8 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: '#FFFFFF',
     opacity: 0.6,
+    textAlign: 'center',
+    marginBottom: 12,
   },
 
   emptyText: {
@@ -287,5 +332,32 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#FF6B6B',
     fontSize: 20,
+  },
+  userListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  userRank: {
+    backgroundColor: '#1D3A40',
+    color: '#FFFFFF',
+    fontWeight: '700',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    minWidth: 34,
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  userUsername: {
+    flex: 1,
+    fontWeight: '700',
+    fontSize: 17,
+    color: '#0E2226',
+  },
+  userPoints: {
+    fontWeight: '700',
+    fontSize: 17,
+    color: '#0E2226',
   },
 });

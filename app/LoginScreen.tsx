@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -17,8 +16,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { loginOAuth, loginUser } from './services/api';
 import MorphingLoadingScreen from './components/MorphingLoadingScreen';
+import { loginOAuth, loginUser } from './services/api';
 
 // Web-compatible alert function
 const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -310,7 +309,7 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
             disabled={loading}
           >
             <Text style={styles.toggleText}>
-              Don't have an account? Create one{'\n'}
+              Don't have an account? Create one
             </Text>
           </TouchableOpacity>
           <View style={styles.buttonContainer}>
@@ -385,6 +384,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    marginTop: 22,
   },
   challengeLabel: {
     color: COLORS.mint,

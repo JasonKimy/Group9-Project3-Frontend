@@ -5,7 +5,6 @@ import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
 
 // API base URL - should match the backend deployment
 const API_BASE_URL = 'https://wander-api-196ebd783842.herokuapp.com/api';
-
 interface Friend {
   id: string;
   username: string;
@@ -179,7 +178,7 @@ export default function Friends() {
     }
   };
 
-  const block = async (blockedId: string) => {
+  const blockUser = async (blockedId: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/friends/block`, {
         method: 'POST',
@@ -311,7 +310,7 @@ console.log('User ID:', userId);
     },
     buttonPrimary: {
       paddingVertical: 8,
-      paddingHorizontal: 16,
+      paddingHorizontal: 8,
       backgroundColor: '#7AD7C3',
       borderRadius: 6,
     },
@@ -322,7 +321,7 @@ console.log('User ID:', userId);
     },
     buttonSecondary: {
       paddingVertical: 8,
-      paddingHorizontal: 16,
+      paddingHorizontal: 8,
       backgroundColor: '#26494F',
       borderRadius: 6,
     },
@@ -333,7 +332,7 @@ console.log('User ID:', userId);
     },
     buttonDanger: {
       paddingVertical: 8,
-      paddingHorizontal: 16,
+      paddingHorizontal: 8,
       backgroundColor: '#CC4444',
       borderRadius: 6,
     },
@@ -353,6 +352,7 @@ console.log('User ID:', userId);
       gap: 10,
       marginTop: 10,
       alignItems: 'center',
+      marginBottom: 100,
     },
     input: {
       flex: 1,
@@ -367,7 +367,7 @@ console.log('User ID:', userId);
     },
   });
 
-  if (error) return <View style={styles.error}><Text style={styles.errorText}>Error: {error}</Text></View>;
+  // if (error) return <View style={styles.error}><Text style={styles.errorText}>Error: {error}</Text></View>;
 
   const Section = ({ title, children }: any) => (
     <View style={styles.section}>
@@ -399,7 +399,7 @@ console.log('User ID:', userId);
               <Text style={styles.username}>{friend.username}</Text>
               <View style={styles.actions}>
                 <TouchableOpacity style={styles.buttonDanger} onPress={() => removeFriend(friend.friend_2_id)}><Text style={styles.buttonDangerText}>Remove</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.buttonSecondary} onPress={() => block(friend.friend_1_id)}><Text style={styles.buttonSecondaryText}>Block</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.buttonSecondary} onPress={() => blockUser(friend.friend_2_id)}><Text style={styles.buttonSecondaryText}>Block</Text></TouchableOpacity>
               </View>
             </ListItem>
           ))
@@ -431,7 +431,7 @@ console.log('User ID:', userId);
               <View style={styles.actions}>
                 <TouchableOpacity style={styles.buttonPrimary} onPress={() => acceptFriendRequest(request.id)}><Text style={styles.buttonPrimaryText}>Accept</Text></TouchableOpacity>
                 <TouchableOpacity style={styles.buttonDanger} onPress={() => rejectFriendRequest(request.id)}><Text style={styles.buttonDangerText}>Reject</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.buttonSecondary} onPress={() => block(request.friend_1_id)}><Text style={styles.buttonSecondaryText}>Block</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.buttonSecondary} onPress={() => blockUser(request.friend_2_id)}><Text style={styles.buttonSecondaryText}>Block</Text></TouchableOpacity>
               </View>
             </ListItem>
           ))
