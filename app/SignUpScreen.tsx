@@ -240,8 +240,12 @@ export default function SignUpScreen() {
     setLoading(true);
     
     try {
-      // Create the user account
-      const user = await createUser(username, password, email, favChallenge1, favChallenge2);
+      // Construct avatar URL
+      const originalIndex = AVATAR_CATEGORIES[selectedCategory].indexOf(selectedAvatar);
+      const avatarUrl = `../assets/Wander-Avatars/${selectedCategory}/${selectedCategory}${originalIndex + 1}.png`;
+      
+      // Create the user account with avatar
+      const user = await createUser(username, password, email, favChallenge1, favChallenge2, avatarUrl);
       
       // Get all available categories to select a random one
       const allCategories = await fetchCategories();
