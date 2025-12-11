@@ -129,6 +129,10 @@ export default function SignUpScreen() {
     setSelectedAvatar(initialShuffled[0]);
   }, []);
 
+  // Toast feedback
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
+
   // Available categories for challenges
   const availableCategories = [
     { label: 'Coffee Shop', value: 'coffee_shop' },
@@ -199,41 +203,47 @@ export default function SignUpScreen() {
       });
     }
   };
+  const triggerToast = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  };
+  
 
   const handleCreateAccount = async () => {
     if (!username || !email || !password || !confirmPassword) {
-      showAlert('Error', 'Please fill all fields');
+      triggerToast('Please fill all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      showAlert('Error', 'Passwords do not match');
+      triggerToast('Passwords do not match');
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      showAlert('Error', 'Please enter a valid email address');
+      triggerToast('Please enter a valid email address');
       return;
     }
 
     if (password.length < 6) {
-      showAlert('Error', 'Password must be at least 6 characters long');
+      triggerToast('Password must be at least 6 characters long');
       return;
     }
 
     if (!favChallenge1 || !favChallenge2) {
-      showAlert('Error', 'Please select both favorite challenges');
+      triggerToast('Please select both favorite challenges');
       return;
     }
 
     if (favChallenge1 === favChallenge2) {
-      showAlert('Error', 'Please select two different challenges');
+      triggerToast('Please select two different challenges');
       return;
     }
 
     if (!selectedAvatar) {
-      showAlert('Error', 'Please select an avatar');
+      triggerToast('Please select an avatar');
       return;
     }
 
@@ -265,9 +275,9 @@ export default function SignUpScreen() {
         createDeck(user.id, randomCategory),
       ]);
       
-      showAlert('Success', 'Account created successfully! Your challenges are ready. Please log in.', () => {
-        router.back();
-      });
+      triggerToast('Account created successfully! Your challenges are ready. Please log in.');
+      setTimeout(() => router.back(), 2000);
+
     } catch (error) {
       showAlert('Registration Failed', error instanceof Error ? error.message : 'Failed to create account');
     } finally {
@@ -278,6 +288,12 @@ export default function SignUpScreen() {
   return (
     <>
       <MorphingLoadingScreen visible={loading} />
+      {showToast && (
+  <View style={styles.toast}>
+    <Text style={styles.toastText}>{toastMessage}</Text>
+  </View>
+)}
+
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -614,4 +630,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
   },
+  toast: {
+    position: 'absolute',
+    top: 70,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    zIndex: 999,
+  },
+  toastText: {
+    color: 'white',
+    fontSize: 15,
+    fontWeight: '600',
+  },  
 });
