@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -16,8 +17,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import MorphingLoadingScreen from './components/MorphingLoadingScreen';
 import { loginOAuth, loginUser } from './services/api';
+import MorphingLoadingScreen from './components/MorphingLoadingScreen';
 
 // Web-compatible alert function
 const showAlert = (title: string, message: string, onOk?: () => void) => {
@@ -272,7 +273,12 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
           style={{ flex: 1 }}
         >
           <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>Login</Text>
+          <View style={styles.logoContainer}>
+  <Image 
+    source={require('../assets/wander_logo.png')} 
+    style={styles.logoImage}/>
+    <Text style={styles.title}>Login</Text>
+</View>
 
           <TextInput
             style={styles.input}
@@ -331,11 +337,11 @@ const [googleRequest, googleResponse, googlePromptAsync] = AuthSession.useAuthRe
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: COLORS.darkBlue },
   container: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  title: { fontSize: 32, fontWeight: 'bold', color: COLORS.mint, marginBottom: 40 },
+  title: { fontSize: 26, fontWeight: 'bold', color: COLORS.mint, marginBottom: 20, marginTop: 10, },
   input: {
     width: '100%',
     padding: 14,
-    marginBottom: 20,
+    marginBottom: 12,
     borderRadius: 10,
     backgroundColor: COLORS.tealDark,
     color: COLORS.white,
@@ -384,7 +390,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    marginTop: 22,
   },
   challengeLabel: {
     color: COLORS.mint,
@@ -418,4 +423,15 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: 'bold',
   },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  logoImage: {
+    width: 200,
+    height: 200,
+    resizeMode: 'contain',
+    marginBottom: 1,
+  },
+  
 });
