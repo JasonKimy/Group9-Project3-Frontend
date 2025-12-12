@@ -178,6 +178,11 @@ export default function HomeScreen() {
       <View style={styles.container}>
       {/* HERO HEADER */}
       <View style={styles.heroContainer}>
+        {/*Background Mountain Logo*/}
+        <Image
+        source={require('../../assets/mountain.png')}
+        style={styles.heroLogo}
+        />
         <Text style={styles.heroTitle}>WANDER</Text>
         <Text style={styles.heroSubtitle}>Find your next adventure</Text>
       </View>
@@ -355,9 +360,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: COLORS.mint,
   },
-  listContent: {
-    padding: 16,
-  },
   deckCard: { 
     padding: 20, 
     backgroundColor: COLORS.tealDark, 
@@ -398,4 +400,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.mint,
   },
+  heroLogo: {
+    position:'absolute',
+    top:20,
+    width:200,
+    height:200,
+    opacity:0.15,
+    resizeMode:'contain',
+  }
 });
