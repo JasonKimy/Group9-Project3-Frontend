@@ -1,13 +1,13 @@
-import React from 'react';
 import {
-  render,
-  waitFor,
-  fireEvent,
+    fireEvent,
+    render,
+    waitFor,
 } from '@testing-library/react-native';
-import DeckScreen from '../DeckScreen';
-import { Alert } from 'react-native';
 import * as Location from 'expo-location';
-import { getDeckById, calculateDistance } from '../../services/api';
+import React from 'react';
+import { Alert } from 'react-native';
+import { calculateDistance, getDeckById } from '../../services/api';
+import DeckScreen from '../DeckScreen';
 
 // --- Mock expo-router (with deckId) ---
 
@@ -36,10 +36,32 @@ jest.mock('expo-location', () => ({
 jest.mock('../../services/api', () => ({
   getDeckById: jest.fn(),
   calculateDistance: jest.fn(),
+  getUserCheckIns: jest.fn(),
 }));
+
+// --- Mock AsyncStorage ---
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+}));
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserCheckIns } from '../../services/api';
+
+const mockUser = {
+  id: 'user-123',
+  username: 'testUser',
+  points: 100,
+};
 
 beforeEach(() => {
   jest.clearAllMocks();
+
+  // Mock AsyncStorage to return a user
+  (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockUser));
+  
+  // Mock getUserCheckIns to return empty array by default
+  (getUserCheckIns as jest.Mock).mockResolvedValue([]);
 
   // Default: deny location permission so userLocation stays null,
   // tests can override this when needed.
@@ -80,6 +102,11 @@ describe('DeckScreen', () => {
     (Location.getCurrentPositionAsync as jest.Mock).mockResolvedValue({
       coords: { latitude: 10, longitude: 20 },
     });
+
+    // Mock getUserCheckIns to return one checked-in place
+    (getUserCheckIns as jest.Mock).mockResolvedValue([
+      { placeId: 'p2' } // p2 (Near Cafe) has been visited
+    ]);
 
     (getDeckById as jest.Mock).mockResolvedValue({
       id: 1,
@@ -130,18 +157,25 @@ describe('DeckScreen', () => {
       const cityLabels = getAllByText('San Francisco');
       expect(cityLabels.length).toBe(2);
 
-      // Visited badge for visited place
-      expect(getByText('✓ Visited')).toBeTruthy();
+      // Visited place should be disabled (not clickable)
+      // The "Near Cafe" card should be marked as visited
+      // We can verify by checking that it doesn't navigate when pressed
 
       // Distance text like "📍 0.62 miles away" (exact number may vary)
       const distanceLabels = getAllByText(/miles away/);
       expect(distanceLabels.length).toBeGreaterThan(0);
     });
 
-    // Pressing a place navigates to /checkin/:id
-    fireEvent.press(getByText('Near Cafe'));
+    // Pressing a non-visited place navigates to /checkin/:id
+    // Near Cafe is visited, so press Far Cafe instead
+    fireEvent.press(getByText('Far Cafe'));
 
-    expect(mockPush).toHaveBeenCalledWith('/checkin/p2');
+    expect(mockPush).toHaveBeenCalledWith('/checkin/p1');
+    
+    // Verify that pressing a visited place doesn't navigate
+    mockPush.mockClear();
+    fireEvent.press(getByText('Near Cafe'));
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('shows an alert when deck fetching fails and falls back to empty state', async () => {

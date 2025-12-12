@@ -9,6 +9,14 @@ jest.mock('expo-router', () => ({
   }),
 }));
 
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+}));
+
 const originalWarn = console.warn;
 console.warn = (...args) => {
   const msg = args[0];
@@ -49,3 +57,9 @@ console.error = (...args) => {
 
   originalError(...args);
 };
+
+// Clean up timers and async operations after each test
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
+});
