@@ -1,12 +1,12 @@
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { calculateDistance, fetchPlaceById, createCheckIn, addPointsToUser, User } from '../services/api';
-import { Place } from './models';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MorphingLoadingScreen from '../components/MorphingLoadingScreen';
+import { addPointsToUser, calculateDistance, createCheckIn, fetchPlaceById, User } from '../services/api';
+import { Place } from './models';
 
 const CHECK_IN_RADIUS_KM = 0.5; // 500 meters
 const KM_TO_MILES = 0.621371; // Conversion factor
@@ -60,7 +60,9 @@ export default function CheckInScreen() {
         if (mounted) setPlace(placeData);
       } catch (err) {
         console.error(err);
-        if (mounted) Alert.alert('Error', 'Failed to load place details.');
+        if (mounted) {
+          Alert.alert('Error', 'Failed to load place details.');
+        }
       } finally {
         if (mounted) {
           setPlaceLoaded(true);

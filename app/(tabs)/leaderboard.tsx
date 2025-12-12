@@ -133,38 +133,38 @@ export default function Leaderboard() {
       </View>
 
       {/* FRIENDS LEADERBOARD */}
-        {friendsLeaderboard.length === 1 ||  friendsLeaderboard.length === 0 ? (
-          <Text></Text>
-        ) : (
-          <View style={styles.section}>
-          <>
-          <Text style={styles.sectionTitle}>Friends Leaderboard</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Friends Leaderboard</Text>
 
-          <View style={styles.list}>
-            {friendsLeaderboard.map((user, index) => {
-              const isCurrentUser = currentUser && user.id === currentUser.id;
-              
-              return (
-                <View key={user.id} 
-                  style={[styles.listItem, isCurrentUser && styles.currentUser]}
-                >
-                  <Text style={[styles.rankBadge, isCurrentUser && styles.userRank]}>
-                    {index + 1}
-                  </Text>
-                  <Text style={[styles.username, isCurrentUser && styles.userUsername]}>
-                    {user.username}
-                  </Text>
-                  <Text style={[styles.points, isCurrentUser && styles.userPoints]}>
-                    {user.points} pts
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
+        {friendsLeaderboard.length === 0 || friendsLeaderboard.length === 1 ? (
+          <Text style={styles.emptyText}>No friends leaderboard available</Text>
+        ) : (
+          <>
+            <View style={styles.list}>
+              {friendsLeaderboard.map((user, index) => {
+                const isCurrentUser = currentUser && user.id === currentUser.id;
+                
+                return (
+                  <View key={user.id} 
+                    style={[styles.listItem, isCurrentUser && styles.currentUser]}
+                  >
+                    <Text style={[styles.rankBadge, isCurrentUser && styles.userRank]}>
+                      {index + 1}
+                    </Text>
+                    <Text style={[styles.username, isCurrentUser && styles.userUsername]}>
+                      {user.username}
+                    </Text>
+                    <Text style={[styles.points, isCurrentUser && styles.userPoints]}>
+                      {user.points} pts
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
 
             {showFriendsUser && currentUser && (
               <View>
-              <Text style={styles.ellipsis}>•••</Text>
+                <Text style={styles.ellipsis}>•••</Text>
                 <View style={styles.currentUser}>
                   <View style={styles.userListItem}>
                     <Text style={styles.userRank}>{friendsRank > 5 ? friendsRank : 6}</Text>
@@ -175,8 +175,8 @@ export default function Leaderboard() {
               </View>
             )}
           </>
-          </View>
         )}
+      </View>
       </ScrollView>
     </View>
     </>
